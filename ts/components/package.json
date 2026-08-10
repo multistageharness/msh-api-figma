@@ -1,0 +1,108 @@
+{
+  "name": "figma-components-api",
+  "version": "1.0.0",
+  "description": "Node.js client for Figma Components, Component Sets, and Styles API",
+  "type": "module",
+  "main": "./lib/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./lib/index.js"
+    },
+    "./service": {
+      "types": "./dist/core/service.d.ts",
+      "import": "./dist/core/service.mjs",
+      "require": "./lib/core/service.js"
+    },
+    "./exceptions": {
+      "types": "./dist/core/exceptions.d.ts",
+      "import": "./dist/core/exceptions.mjs",
+      "require": "./lib/core/exceptions.js"
+    },
+    "./sdk": {
+      "types": "./dist/interfaces/sdk.d.ts",
+      "import": "./dist/interfaces/sdk.mjs",
+      "require": "./lib/interfaces/sdk.js"
+    },
+    "./cli": {
+      "types": "./dist/interfaces/cli.d.ts",
+      "import": "./dist/interfaces/cli.mjs",
+      "require": "./lib/interfaces/cli.js"
+    }
+  },
+  "bin": {
+    "figma-components": "lib/interfaces/cli.js"
+  },
+  "scripts": {
+    "clean": "rm -rf dist lib *.tsbuildinfo",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run rename:mjs && npm run fix:imports",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "rename:mjs": "find dist -name '*.js' -type f ! -name '*.d.ts' -exec sh -c 'mv \"$1\" \"${1%.js}.mjs\"' _ {} \\;",
+    "fix:imports": "find dist -name '*.mjs' -type f -exec sed -i '' \"s/from '\\(.*\\)\\.js'/from '\\1.mjs'/g\" {} \\; && find dist -name '*.mjs' -type f -exec sed -i '' 's/from \"\\(.*\\)\\.js\"/from \"\\1.mjs\"/g' {} \\;",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --experimental-vm-modules ../node_modules/.bin/jest",
+    "test:watch": "npm test -- --watch",
+    "test:coverage": "npm test -- --coverage",
+    "lint": "eslint src --ext .ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "figma",
+    "api",
+    "client",
+    "sdk",
+    "components",
+    "component-sets",
+    "styles",
+    "design-system",
+    "library"
+  ],
+  "author": "thinkeloquent",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "lib",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
+  "peerDependencies": {
+    "@figma-api/fetch": "file:../figma-fetch"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "@figma-api/fetch": "file:../figma-fetch",
+    "@jest/globals": "^29.7.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.57.0",
+    "fastify": "^5.6.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/figma/figma-api-module.git",
+    "directory": "ts/components"
+  },
+  "bugs": {
+    "url": "https://github.com/figma/figma-api-module/issues"
+  },
+  "homepage": "https://github.com/figma/figma-api-module/tree/main/ts/components#readme"
+}
