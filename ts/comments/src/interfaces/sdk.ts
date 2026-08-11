@@ -12,7 +12,7 @@
  *  - Smart caching strategies
  */
 
-import FigmaCommentsService from '../core/service.js';
+import FigmaCommentsService from "../core/service.js";
 
 /**
  * High-level SDK for Figma Comments API
@@ -33,7 +33,10 @@ export class FigmaCommentsSDK {
    * @param {Object} config.fetcher - FigmaApiClient instance (required)
    * @param {Object} [config.logger=console] - Logger instance
    */
-  constructor({ fetcher, logger = console }: { fetcher?: any; logger?: any } = {}) {
+  constructor({
+    fetcher,
+    logger = console,
+  }: { fetcher?: any; logger?: any } = {}) {
     this.service = new FigmaCommentsService({ fetcher, logger });
     this.logger = logger;
   }
@@ -46,7 +49,10 @@ export class FigmaCommentsSDK {
    * @param {Object} options - Request options
    * @returns {Promise<Array>} Array of comments
    */
-  async getComments(fileKey: string, options: Record<string, any> = {}): Promise<any[]> {
+  async getComments(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any[]> {
     return this.service.getFileComments(fileKey, options);
   }
 
@@ -57,7 +63,11 @@ export class FigmaCommentsSDK {
    * @param {Object} options - Comment options
    * @returns {Promise<Object>} Created comment
    */
-  async addComment(fileKey: string, message: string, options: Record<string, any> = {}): Promise<any> {
+  async addComment(
+    fileKey: string,
+    message: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     const commentData = { message, ...options };
     return this.service.addComment(fileKey, commentData);
   }
@@ -79,7 +89,11 @@ export class FigmaCommentsSDK {
    * @param {string} message - Reply message
    * @returns {Promise<Object>} Created reply
    */
-  async replyToComment(fileKey: string, commentId: string, message: string): Promise<any> {
+  async replyToComment(
+    fileKey: string,
+    commentId: string,
+    message: string,
+  ): Promise<any> {
     return this.service.replyToComment(fileKey, commentId, message);
   }
 
@@ -102,7 +116,11 @@ export class FigmaCommentsSDK {
    * @param {string} emoji - Reaction emoji (e.g., '👍', '❤️', '😀')
    * @returns {Promise<Object>} Added reaction
    */
-  async addReaction(fileKey: string, commentId: string, emoji: string): Promise<any> {
+  async addReaction(
+    fileKey: string,
+    commentId: string,
+    emoji: string,
+  ): Promise<any> {
     return this.service.addCommentReaction(fileKey, commentId, emoji);
   }
 
@@ -113,7 +131,11 @@ export class FigmaCommentsSDK {
    * @param {string} emoji - Reaction emoji to remove
    * @returns {Promise<Object>} Removal result
    */
-  async removeReaction(fileKey: string, commentId: string, emoji: string): Promise<any> {
+  async removeReaction(
+    fileKey: string,
+    commentId: string,
+    emoji: string,
+  ): Promise<any> {
     return this.service.deleteCommentReaction(fileKey, commentId, emoji);
   }
 
@@ -124,7 +146,11 @@ export class FigmaCommentsSDK {
    * @param {string} emoji - Reaction emoji
    * @returns {Promise<Object>} Toggle result with action taken
    */
-  async toggleReaction(fileKey: string, commentId: string, emoji: string): Promise<any> {
+  async toggleReaction(
+    fileKey: string,
+    commentId: string,
+    emoji: string,
+  ): Promise<any> {
     return this.service.toggleCommentReaction(fileKey, commentId, emoji);
   }
 
@@ -134,7 +160,10 @@ export class FigmaCommentsSDK {
    * @param {Object} options - Query options
    * @returns {Promise<Object>} Reaction analytics
    */
-  async getReactionSummary(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getReactionSummary(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getFileReactionSummary(fileKey, options);
   }
 
@@ -167,23 +196,29 @@ export class FigmaCommentsSDK {
    * @param {string} type - Reaction type ('like', 'love', 'laugh', 'wow', 'sad', 'angry')
    * @returns {Promise<Object>} Added reaction
    */
-  async quickReact(fileKey: string, commentId: string, type: string): Promise<any> {
+  async quickReact(
+    fileKey: string,
+    commentId: string,
+    type: string,
+  ): Promise<any> {
     const emojiMap: Record<string, string> = {
-      'like': '👍',
-      'dislike': '👎',
-      'love': '❤️',
-      'laugh': '😂',
-      'wow': '😮',
-      'sad': '😢',
-      'angry': '😠',
-      'celebrate': '🎉',
-      'fire': '🔥',
-      'rocket': '🚀'
+      like: "👍",
+      dislike: "👎",
+      love: "❤️",
+      laugh: "😂",
+      wow: "😮",
+      sad: "😢",
+      angry: "😠",
+      celebrate: "🎉",
+      fire: "🔥",
+      rocket: "🚀",
     };
 
     const emoji = emojiMap[type.toLowerCase()];
     if (!emoji) {
-      throw new Error(`Unsupported reaction type: ${type}. Available: ${Object.keys(emojiMap).join(', ')}`);
+      throw new Error(
+        `Unsupported reaction type: ${type}. Available: ${Object.keys(emojiMap).join(", ")}`,
+      );
     }
 
     return this.addReaction(fileKey, commentId, emoji);
@@ -199,9 +234,14 @@ export class FigmaCommentsSDK {
    * @param {string} message - Comment message
    * @returns {Promise<Object>} Created comment
    */
-  async addCommentAtCoordinates(fileKey: string, x: number, y: number, message: string): Promise<any> {
+  async addCommentAtCoordinates(
+    fileKey: string,
+    x: number,
+    y: number,
+    message: string,
+  ): Promise<any> {
     return this.addComment(fileKey, message, {
-      position: { x, y }
+      position: { x, y },
     });
   }
 
@@ -213,9 +253,14 @@ export class FigmaCommentsSDK {
    * @param {Object} offset - Node offset coordinates
    * @returns {Promise<Object>} Created comment
    */
-  async addCommentToNode(fileKey: string, nodeId: string, message: string, offset: { x: number; y: number } = { x: 0, y: 0 }): Promise<any> {
+  async addCommentToNode(
+    fileKey: string,
+    nodeId: string,
+    message: string,
+    offset: { x: number; y: number } = { x: 0, y: 0 },
+  ): Promise<any> {
     return this.addComment(fileKey, message, {
-      position: { nodeId, offsetX: offset.x, offsetY: offset.y }
+      position: { nodeId, offsetX: offset.x, offsetY: offset.y },
     });
   }
 
@@ -236,7 +281,11 @@ export class FigmaCommentsSDK {
    * @param {Object} options - Search options
    * @returns {Promise<Array>} Matching comments
    */
-  async searchComments(fileKey: string, query: string, options: Record<string, any> = {}): Promise<any[]> {
+  async searchComments(
+    fileKey: string,
+    query: string,
+    options: Record<string, any> = {},
+  ): Promise<any[]> {
     return this.service.searchComments(fileKey, query, options);
   }
 
@@ -276,7 +325,7 @@ export class FigmaCommentsSDK {
    * @param {string} format - Export format (json, csv, markdown)
    * @returns {Promise<string>} Exported data
    */
-  async exportComments(fileKey: string, format = 'json'): Promise<string> {
+  async exportComments(fileKey: string, format = "json"): Promise<string> {
     return this.service.exportComments(fileKey, format);
   }
 
@@ -286,7 +335,10 @@ export class FigmaCommentsSDK {
    * @param {Array} comments - Array of comment data
    * @returns {Promise<Object>} Bulk creation results
    */
-  async bulkAddComments(fileKey: string, comments: Record<string, any>[]): Promise<any> {
+  async bulkAddComments(
+    fileKey: string,
+    comments: Record<string, any>[],
+  ): Promise<any> {
     return this.service.bulkAddComments(fileKey, comments);
   }
 
@@ -296,7 +348,10 @@ export class FigmaCommentsSDK {
    * @param {Array<string>} commentIds - Array of comment IDs
    * @returns {Promise<Object>} Batch deletion results
    */
-  async bulkDeleteComments(fileKey: string, commentIds: string[]): Promise<any> {
+  async bulkDeleteComments(
+    fileKey: string,
+    commentIds: string[],
+  ): Promise<any> {
     return this.service.batchDeleteComments(fileKey, commentIds);
   }
 
@@ -325,14 +380,22 @@ export class FigmaCommentsSDK {
     const rootComments = comments.filter((c: any) => !c.parent_id);
 
     for (const rootComment of rootComments) {
-      const replies = comments.filter((c: any) => c.parent_id === rootComment.id);
+      const replies = comments.filter(
+        (c: any) => c.parent_id === rootComment.id,
+      );
       threads.push({
         ...rootComment,
-        replies: replies.sort((a: any, b: any) => (new Date(a.created_at) as any) - (new Date(b.created_at) as any))
+        replies: replies.sort(
+          (a: any, b: any) =>
+            (new Date(a.created_at) as any) - (new Date(b.created_at) as any),
+        ),
       });
     }
 
-    return threads.sort((a: any, b: any) => (new Date(b.created_at) as any) - (new Date(a.created_at) as any));
+    return threads.sort(
+      (a: any, b: any) =>
+        (new Date(b.created_at) as any) - (new Date(a.created_at) as any),
+    );
   }
 
   /**
@@ -346,12 +409,12 @@ export class FigmaCommentsSDK {
     const activity: Record<string, any> = {};
 
     for (const comment of comments) {
-      const date = comment.created_at.split('T')[0]; // Get date part
+      const date = comment.created_at.split("T")[0]; // Get date part
       if (!activity[date]) {
         activity[date] = {
           comments: 0,
           users: new Set(),
-          messages: []
+          messages: [],
         };
       }
 
@@ -359,12 +422,14 @@ export class FigmaCommentsSDK {
       activity[date].users.add(comment.user.id);
       activity[date].messages.push({
         user: comment.user.handle,
-        message: comment.message.substring(0, 100) + (comment.message.length > 100 ? '...' : '')
+        message:
+          comment.message.substring(0, 100) +
+          (comment.message.length > 100 ? "..." : ""),
       });
     }
 
     // Convert Sets to counts
-    Object.keys(activity).forEach(date => {
+    Object.keys(activity).forEach((date) => {
       activity[date].uniqueUsers = activity[date].users.size;
       delete activity[date].users;
     });
@@ -378,20 +443,23 @@ export class FigmaCommentsSDK {
    * @param {string} userId - User ID to find mentions for
    * @returns {Promise<Array>} Comments mentioning the user
    */
-  async findMentions(fileKey: string, userId: string | null = null): Promise<any[]> {
+  async findMentions(
+    fileKey: string,
+    userId: string | null = null,
+  ): Promise<any[]> {
     const comments = await this.getComments(fileKey);
 
     if (userId) {
-      return comments.filter((c: any) =>
-        c.message.includes(`@${userId}`) ||
-        c.message.includes(`<@${userId}>`)
+      return comments.filter(
+        (c: any) =>
+          c.message.includes(`@${userId}`) ||
+          c.message.includes(`<@${userId}>`),
       );
     }
 
     // Find all mentions
-    return comments.filter((c: any) =>
-      c.message.includes('@') ||
-      c.message.includes('<@')
+    return comments.filter(
+      (c: any) => c.message.includes("@") || c.message.includes("<@"),
     );
   }
 
@@ -409,19 +477,31 @@ export class FigmaCommentsSDK {
       totalComments: stats.total,
       totalReplies: stats.totalReplies,
       threadsWithReplies: stats.withReplies,
-      avgRepliesPerThread: stats.withReplies > 0 ? stats.totalReplies / stats.withReplies : 0,
-      responseRate: stats.rootComments > 0 ? (stats.withReplies / stats.rootComments) * 100 : 0,
+      avgRepliesPerThread:
+        stats.withReplies > 0 ? stats.totalReplies / stats.withReplies : 0,
+      responseRate:
+        stats.rootComments > 0
+          ? (stats.withReplies / stats.rootComments) * 100
+          : 0,
       mostActiveUser: this._findMostActiveUser(comments),
       longestThread: this._findLongestThread(comments),
       avgMessageLength: stats.averageLength,
 
       // Enhanced reaction metrics
       totalReactions: reactionSummary.totalReactions || 0,
-      reactionRate: stats.total > 0 ? ((reactionSummary.totalReactions || 0) / stats.total) * 100 : 0,
+      reactionRate:
+        stats.total > 0
+          ? ((reactionSummary.totalReactions || 0) / stats.total) * 100
+          : 0,
       topReactions: reactionSummary.topEmojis || [],
       mostReactedComments: reactionSummary.mostReactedComments || [],
-      reactionEngagementUsers: reactionSummary.userReactionActivity ? Object.keys(reactionSummary.userReactionActivity).length : 0,
-      avgReactionsPerComment: stats.total > 0 ? (reactionSummary.totalReactions || 0) / stats.total : 0
+      reactionEngagementUsers: reactionSummary.userReactionActivity
+        ? Object.keys(reactionSummary.userReactionActivity).length
+        : 0,
+      avgReactionsPerComment:
+        stats.total > 0
+          ? (reactionSummary.totalReactions || 0) / stats.total
+          : 0,
     };
 
     return engagementMetrics;
@@ -445,10 +525,10 @@ export class FigmaCommentsSDK {
   async healthCheck(): Promise<any> {
     // Simple health check - try to make a request to /v1/me endpoint
     try {
-      await this.service.fetcher.request('/v1/me');
-      return { status: 'healthy', message: 'API is responding normally' };
+      await this.service.fetcher.request("/v1/me");
+      return { status: "healthy", message: "API is responding normally" };
     } catch (error: any) {
-      return { status: 'unhealthy', error: error.message };
+      return { status: "unhealthy", error: error.message };
     }
   }
 
@@ -482,14 +562,15 @@ export class FigmaCommentsSDK {
       if (!userCounts[userId]) {
         userCounts[userId] = {
           count: 0,
-          user: comment.user
+          user: comment.user,
         };
       }
       userCounts[userId].count++;
     }
 
-    const mostActive = Object.values(userCounts)
-      .sort((a: any, b: any) => b.count - a.count)[0];
+    const mostActive = Object.values(userCounts).sort(
+      (a: any, b: any) => b.count - a.count,
+    )[0];
 
     return mostActive || null;
   }
@@ -516,7 +597,7 @@ export class FigmaCommentsSDK {
         const parentComment = comments.find((c: any) => c.id === parentId);
         longestThread = {
           parentComment,
-          replyCount: replies.length
+          replyCount: replies.length,
         };
       }
     }

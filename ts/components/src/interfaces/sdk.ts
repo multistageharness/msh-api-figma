@@ -4,7 +4,7 @@
  * Simplifies common operations and provides convenient methods
  */
 
-import FigmaComponentsService from '../core/service.js';
+import FigmaComponentsService from "../core/service.js";
 
 /**
  * High-level SDK for Figma Components API operations
@@ -26,10 +26,13 @@ export class FigmaComponentsSDK {
    * @param {Object} config.fetcher - FigmaApiClient instance (required)
    * @param {Object} [config.logger=console] - Logger instance
    */
-  constructor({ fetcher, logger = console }: { fetcher?: any; logger?: any } = {}) {
+  constructor({
+    fetcher,
+    logger = console,
+  }: { fetcher?: any; logger?: any } = {}) {
     this.service = new FigmaComponentsService({
       fetcher,
-      logger
+      logger,
     });
     this.logger = logger;
   }
@@ -44,7 +47,10 @@ export class FigmaComponentsSDK {
    * @param {Object} [options] - Pagination options
    * @returns {Promise<Object>} Paginated components list
    */
-  async getTeamComponents(teamId: string, options: Record<string, any> = {}): Promise<any> {
+  async getTeamComponents(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getTeamComponents(teamId, options);
   }
 
@@ -54,7 +60,10 @@ export class FigmaComponentsSDK {
    * @param {number} [maxItems=1000] - Maximum number of items to fetch
    * @returns {Promise<Object[]>} All components in team
    */
-  async getAllTeamComponents(teamId: string, maxItems: number = 1000): Promise<any[]> {
+  async getAllTeamComponents(
+    teamId: string,
+    maxItems: number = 1000,
+  ): Promise<any[]> {
     const allComponents: any[] = [];
     let after: any = null;
     let hasMore = true;
@@ -62,7 +71,7 @@ export class FigmaComponentsSDK {
     while (hasMore && allComponents.length < maxItems) {
       const response = await this.getTeamComponents(teamId, {
         pageSize: Math.min(100, maxItems - allComponents.length),
-        after
+        after,
       });
 
       if (response.components) {
@@ -117,7 +126,10 @@ export class FigmaComponentsSDK {
    * @param {Object} [options] - Pagination options
    * @returns {Promise<Object>} Paginated component sets list
    */
-  async getTeamComponentSets(teamId: string, options: Record<string, any> = {}): Promise<any> {
+  async getTeamComponentSets(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getTeamComponentSets(teamId, options);
   }
 
@@ -127,7 +139,10 @@ export class FigmaComponentsSDK {
    * @param {number} [maxItems=1000] - Maximum number of items to fetch
    * @returns {Promise<Object[]>} All component sets in team
    */
-  async getAllTeamComponentSets(teamId: string, maxItems: number = 1000): Promise<any[]> {
+  async getAllTeamComponentSets(
+    teamId: string,
+    maxItems: number = 1000,
+  ): Promise<any[]> {
     const allComponentSets: any[] = [];
     let after: any = null;
     let hasMore = true;
@@ -135,7 +150,7 @@ export class FigmaComponentsSDK {
     while (hasMore && allComponentSets.length < maxItems) {
       const response = await this.getTeamComponentSets(teamId, {
         pageSize: Math.min(100, maxItems - allComponentSets.length),
-        after
+        after,
       });
 
       if (response.component_sets) {
@@ -180,7 +195,10 @@ export class FigmaComponentsSDK {
    * @param {Object} [options] - Pagination options
    * @returns {Promise<Object>} Paginated styles list
    */
-  async getTeamStyles(teamId: string, options: Record<string, any> = {}): Promise<any> {
+  async getTeamStyles(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getTeamStyles(teamId, options);
   }
 
@@ -190,7 +208,10 @@ export class FigmaComponentsSDK {
    * @param {number} [maxItems=1000] - Maximum number of items to fetch
    * @returns {Promise<Object[]>} All styles in team
    */
-  async getAllTeamStyles(teamId: string, maxItems: number = 1000): Promise<any[]> {
+  async getAllTeamStyles(
+    teamId: string,
+    maxItems: number = 1000,
+  ): Promise<any[]> {
     const allStyles: any[] = [];
     let after: any = null;
     let hasMore = true;
@@ -198,7 +219,7 @@ export class FigmaComponentsSDK {
     while (hasMore && allStyles.length < maxItems) {
       const response = await this.getTeamStyles(teamId, {
         pageSize: Math.min(100, maxItems - allStyles.length),
-        after
+        after,
       });
 
       if (response.styles) {
@@ -274,7 +295,10 @@ export class FigmaComponentsSDK {
    * @param {Object} [options] - Request options
    * @returns {Promise<Object>} Complete library content
    */
-  async getTeamLibrary(teamId: string, options: Record<string, any> = {}): Promise<any> {
+  async getTeamLibrary(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getTeamLibraryContent(teamId, options);
   }
 
@@ -296,28 +320,32 @@ export class FigmaComponentsSDK {
     const library = await this.getTeamLibrary(teamId);
 
     const analytics: any = {
-      totalItems: library.summary.componentsCount + library.summary.componentSetsCount + library.summary.stylesCount,
+      totalItems:
+        library.summary.componentsCount +
+        library.summary.componentSetsCount +
+        library.summary.stylesCount,
       breakdown: {
         components: library.summary.componentsCount,
         componentSets: library.summary.componentSetsCount,
-        styles: library.summary.stylesCount
+        styles: library.summary.stylesCount,
       },
       componentsByType: {},
-      stylesByType: {}
+      stylesByType: {},
     };
 
     // Analyze component types
     if (library.components?.components) {
       for (const component of library.components.components) {
-        const type = component.node_type || 'unknown';
-        analytics.componentsByType[type] = (analytics.componentsByType[type] || 0) + 1;
+        const type = component.node_type || "unknown";
+        analytics.componentsByType[type] =
+          (analytics.componentsByType[type] || 0) + 1;
       }
     }
 
     // Analyze style types
     if (library.styles?.styles) {
       for (const style of library.styles.styles) {
-        const type = style.style_type || 'unknown';
+        const type = style.style_type || "unknown";
         analytics.stylesByType[type] = (analytics.stylesByType[type] || 0) + 1;
       }
     }
@@ -331,8 +359,11 @@ export class FigmaComponentsSDK {
    * @param {Object} [options] - Export options
    * @returns {Promise<Object>} Structured library export
    */
-  async exportTeamLibrary(teamId: string, options: Record<string, any> = {}): Promise<any> {
-    const { includeMetadata = true, format = 'json' } = options;
+  async exportTeamLibrary(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
+    const { includeMetadata = true, format = "json" } = options;
 
     const library = await this.getTeamLibrary(teamId);
 
@@ -342,18 +373,21 @@ export class FigmaComponentsSDK {
       summary: library.summary,
       components: library.components?.components || [],
       componentSets: library.componentSets?.component_sets || [],
-      styles: library.styles?.styles || []
+      styles: library.styles?.styles || [],
     };
 
     if (includeMetadata) {
       exportData.metadata = {
-        exportVersion: '1.0.0',
-        figmaApiVersion: 'v1',
-        totalItems: exportData.components.length + exportData.componentSets.length + exportData.styles.length
+        exportVersion: "1.0.0",
+        figmaApiVersion: "v1",
+        totalItems:
+          exportData.components.length +
+          exportData.componentSets.length +
+          exportData.styles.length,
       };
     }
 
-    return format === 'json' ? exportData : JSON.stringify(exportData, null, 2);
+    return format === "json" ? exportData : JSON.stringify(exportData, null, 2);
   }
 
   // ==========================================
@@ -369,15 +403,26 @@ export class FigmaComponentsSDK {
    * @param {string} [pattern.nodeType] - Node type filter
    * @returns {Promise<Object[]>} Matching components
    */
-  async findComponents(teamId: string, pattern: Record<string, any>): Promise<any[]> {
+  async findComponents(
+    teamId: string,
+    pattern: Record<string, any>,
+  ): Promise<any[]> {
     const allComponents = await this.getAllTeamComponents(teamId);
 
-    return allComponents.filter(component => {
-      if (pattern.name && !component.name?.toLowerCase().includes(pattern.name.toLowerCase())) {
+    return allComponents.filter((component) => {
+      if (
+        pattern.name &&
+        !component.name?.toLowerCase().includes(pattern.name.toLowerCase())
+      ) {
         return false;
       }
 
-      if (pattern.description && !component.description?.toLowerCase().includes(pattern.description.toLowerCase())) {
+      if (
+        pattern.description &&
+        !component.description
+          ?.toLowerCase()
+          .includes(pattern.description.toLowerCase())
+      ) {
         return false;
       }
 
@@ -398,7 +443,7 @@ export class FigmaComponentsSDK {
   async findStylesByType(teamId: string, styleType: string): Promise<any[]> {
     const allStyles = await this.getAllTeamStyles(teamId);
 
-    return allStyles.filter(style => style.style_type === styleType);
+    return allStyles.filter((style) => style.style_type === styleType);
   }
 
   // ==========================================
@@ -413,7 +458,7 @@ export class FigmaComponentsSDK {
   static parseComponentKeyFromUrl(url: string): string {
     const match = url.match(/figma\.com.*component\/([a-zA-Z0-9:\-_]+)/);
     if (!match) {
-      throw new Error('Invalid Figma component URL');
+      throw new Error("Invalid Figma component URL");
     }
     return match[1];
   }
@@ -426,7 +471,7 @@ export class FigmaComponentsSDK {
   static parseTeamIdFromUrl(url: string): string {
     const match = url.match(/figma\.com.*team\/(\d+)/);
     if (!match) {
-      throw new Error('Invalid Figma team URL');
+      throw new Error("Invalid Figma team URL");
     }
     return match[1];
   }
@@ -437,7 +482,7 @@ export class FigmaComponentsSDK {
    * @returns {boolean} Whether key is valid
    */
   static isValidComponentKey(key: string): boolean {
-    return typeof key === 'string' && /^[a-zA-Z0-9:\-_]+$/.test(key);
+    return typeof key === "string" && /^[a-zA-Z0-9:\-_]+$/.test(key);
   }
 
   /**
@@ -446,7 +491,7 @@ export class FigmaComponentsSDK {
    * @returns {boolean} Whether team ID is valid
    */
   static isValidTeamId(teamId: string): boolean {
-    return typeof teamId === 'string' && /^\d+$/.test(teamId);
+    return typeof teamId === "string" && /^\d+$/.test(teamId);
   }
 
   /**
@@ -455,7 +500,7 @@ export class FigmaComponentsSDK {
    * @returns {boolean} Whether file key is valid
    */
   static isValidFileKey(fileKey: string): boolean {
-    return typeof fileKey === 'string' && /^[a-zA-Z0-9\-_]+$/.test(fileKey);
+    return typeof fileKey === "string" && /^[a-zA-Z0-9\-_]+$/.test(fileKey);
   }
 
   /**

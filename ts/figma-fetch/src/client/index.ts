@@ -2,14 +2,14 @@
  * Client barrel export
  */
 
-export { FigmaApiClient } from './FigmaApiClient.js';
+export type { EgressConfig } from "./config.js";
 export {
   DEFAULT_BASE_URL,
-  FIGMA_TOKEN_HEADER,
+  egressNeedsProxyAdapter,
   FIGMA_TOKEN_ENV_VARS,
-  resolveFigmaToken,
+  FIGMA_TOKEN_HEADER,
   resolveBaseUrl,
   resolveEgress,
-  egressNeedsProxyAdapter,
-} from './config.js';
-export type { EgressConfig } from './config.js';
+  resolveFigmaToken,
+} from "./config.js";
+export { FigmaApiClient } from "./FigmaApiClient.js";

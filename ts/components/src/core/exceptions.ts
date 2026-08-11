@@ -27,15 +27,18 @@ export class FigmaApiError extends Error {
 export class RateLimitError extends FigmaApiError {
   retryAfter: number | null;
 
-  constructor(retryAfter: number | null = null, requestId: string | null = null) {
+  constructor(
+    retryAfter: number | null = null,
+    requestId: string | null = null,
+  ) {
     const message = retryAfter
       ? `Rate limit exceeded. Retry after ${retryAfter} seconds`
-      : 'Rate limit exceeded';
+      : "Rate limit exceeded";
 
-    super(message, 'RATE_LIMIT_EXCEEDED', {
+    super(message, "RATE_LIMIT_EXCEEDED", {
       retryAfter,
       requestId,
-      retryable: true
+      retryable: true,
     });
     this.retryAfter = retryAfter;
   }
@@ -46,8 +49,8 @@ export class RateLimitError extends FigmaApiError {
  * Thrown when API token is invalid or missing
  */
 export class AuthenticationError extends FigmaApiError {
-  constructor(message: string = 'Authentication failed') {
-    super(message, 'AUTHENTICATION_FAILED', { retryable: false });
+  constructor(message: string = "Authentication failed") {
+    super(message, "AUTHENTICATION_FAILED", { retryable: false });
   }
 }
 
@@ -56,10 +59,13 @@ export class AuthenticationError extends FigmaApiError {
  * Thrown when user doesn't have permission to access resource
  */
 export class AuthorizationError extends FigmaApiError {
-  constructor(message: string = 'Insufficient permissions', requiredScopes: string[] = []) {
-    super(message, 'AUTHORIZATION_FAILED', {
+  constructor(
+    message: string = "Insufficient permissions",
+    requiredScopes: string[] = [],
+  ) {
+    super(message, "AUTHORIZATION_FAILED", {
       requiredScopes,
-      retryable: false
+      retryable: false,
     });
   }
 }
@@ -70,9 +76,9 @@ export class AuthorizationError extends FigmaApiError {
  */
 export class TeamNotFoundError extends FigmaApiError {
   constructor(teamId: string) {
-    super(`Team not found: ${teamId}`, 'TEAM_NOT_FOUND', {
+    super(`Team not found: ${teamId}`, "TEAM_NOT_FOUND", {
       teamId,
-      retryable: false
+      retryable: false,
     });
   }
 }
@@ -83,9 +89,9 @@ export class TeamNotFoundError extends FigmaApiError {
  */
 export class FileNotFoundError extends FigmaApiError {
   constructor(fileKey: string) {
-    super(`File not found: ${fileKey}`, 'FILE_NOT_FOUND', {
+    super(`File not found: ${fileKey}`, "FILE_NOT_FOUND", {
       fileKey,
-      retryable: false
+      retryable: false,
     });
   }
 }
@@ -96,9 +102,9 @@ export class FileNotFoundError extends FigmaApiError {
  */
 export class ComponentNotFoundError extends FigmaApiError {
   constructor(componentKey: string) {
-    super(`Component not found: ${componentKey}`, 'COMPONENT_NOT_FOUND', {
+    super(`Component not found: ${componentKey}`, "COMPONENT_NOT_FOUND", {
       componentKey,
-      retryable: false
+      retryable: false,
     });
   }
 }
@@ -109,10 +115,14 @@ export class ComponentNotFoundError extends FigmaApiError {
  */
 export class ComponentSetNotFoundError extends FigmaApiError {
   constructor(componentSetKey: string) {
-    super(`Component set not found: ${componentSetKey}`, 'COMPONENT_SET_NOT_FOUND', {
-      componentSetKey,
-      retryable: false
-    });
+    super(
+      `Component set not found: ${componentSetKey}`,
+      "COMPONENT_SET_NOT_FOUND",
+      {
+        componentSetKey,
+        retryable: false,
+      },
+    );
   }
 }
 
@@ -122,9 +132,9 @@ export class ComponentSetNotFoundError extends FigmaApiError {
  */
 export class StyleNotFoundError extends FigmaApiError {
   constructor(styleKey: string) {
-    super(`Style not found: ${styleKey}`, 'STYLE_NOT_FOUND', {
+    super(`Style not found: ${styleKey}`, "STYLE_NOT_FOUND", {
       styleKey,
-      retryable: false
+      retryable: false,
     });
   }
 }
@@ -135,10 +145,10 @@ export class StyleNotFoundError extends FigmaApiError {
  */
 export class ValidationError extends FigmaApiError {
   constructor(message: string, field: string | null = null, value: any = null) {
-    super(message, 'VALIDATION_ERROR', {
+    super(message, "VALIDATION_ERROR", {
       field,
       value,
-      retryable: false
+      retryable: false,
     });
   }
 }
@@ -151,9 +161,9 @@ export class NetworkError extends FigmaApiError {
   originalError: Error | null;
 
   constructor(message: string, originalError: Error | null = null) {
-    super(message, 'NETWORK_ERROR', {
+    super(message, "NETWORK_ERROR", {
       originalError: originalError?.message,
-      retryable: true
+      retryable: true,
     });
     this.originalError = originalError;
   }
@@ -168,13 +178,18 @@ export class HttpError extends FigmaApiError {
   statusText: string;
   url: string;
 
-  constructor(status: number, statusText: string, url: string, body: any = null) {
-    super(`HTTP ${status}: ${statusText}`, 'HTTP_ERROR', {
+  constructor(
+    status: number,
+    statusText: string,
+    url: string,
+    body: any = null,
+  ) {
+    super(`HTTP ${status}: ${statusText}`, "HTTP_ERROR", {
       status,
       statusText,
       url,
       body,
-      retryable: status >= 500 || status === 429
+      retryable: status >= 500 || status === 429,
     });
     this.status = status;
     this.statusText = statusText;
@@ -187,10 +202,13 @@ export class HttpError extends FigmaApiError {
  * Thrown for 5xx status codes
  */
 export class ServerError extends FigmaApiError {
-  constructor(message: string = 'Internal server error', requestId: string | null = null) {
-    super(message, 'SERVER_ERROR', {
+  constructor(
+    message: string = "Internal server error",
+    requestId: string | null = null,
+  ) {
+    super(message, "SERVER_ERROR", {
       requestId,
-      retryable: true
+      retryable: true,
     });
   }
 }
@@ -201,9 +219,9 @@ export class ServerError extends FigmaApiError {
  */
 export class TimeoutError extends FigmaApiError {
   constructor(timeout: number) {
-    super(`Request timed out after ${timeout}ms`, 'TIMEOUT', {
+    super(`Request timed out after ${timeout}ms`, "TIMEOUT", {
       timeout,
-      retryable: true
+      retryable: true,
     });
   }
 }
@@ -214,9 +232,9 @@ export class TimeoutError extends FigmaApiError {
  */
 export class PaginationError extends FigmaApiError {
   constructor(message: string, params: Record<string, any> = {}) {
-    super(message, 'PAGINATION_ERROR', {
+    super(message, "PAGINATION_ERROR", {
       params,
-      retryable: false
+      retryable: false,
     });
   }
 }
@@ -227,11 +245,15 @@ export class PaginationError extends FigmaApiError {
  */
 export class ScopeError extends FigmaApiError {
   constructor(requiredScope: string, endpoint: string) {
-    super(`Missing required scope: ${requiredScope} for endpoint: ${endpoint}`, 'SCOPE_ERROR', {
-      requiredScope,
-      endpoint,
-      retryable: false
-    });
+    super(
+      `Missing required scope: ${requiredScope} for endpoint: ${endpoint}`,
+      "SCOPE_ERROR",
+      {
+        requiredScope,
+        endpoint,
+        retryable: false,
+      },
+    );
   }
 }
 
@@ -245,62 +267,71 @@ export class ScopeError extends FigmaApiError {
 export function createErrorFromResponse(
   response: any,
   url: string,
-  body: any = null
+  body: any = null,
 ): FigmaApiError {
   const { status, statusText } = response;
-  const requestId = response.headers.get('x-request-id');
+  const requestId = response.headers.get("x-request-id");
 
   switch (status) {
     case 401:
-      return new AuthenticationError(body?.message || 'Invalid API token');
+      return new AuthenticationError(body?.message || "Invalid API token");
 
     case 403:
       return new AuthorizationError(
-        body?.message || 'Insufficient permissions',
-        body?.requiredScopes
+        body?.message || "Insufficient permissions",
+        body?.requiredScopes,
       );
 
     case 404:
       // Try to determine the specific resource type from URL
-      if (url.includes('/teams/')) {
-        const teamMatch = url.match(/\/teams\/([^\/]+)/);
+      if (url.includes("/teams/")) {
+        const teamMatch = url.match(/\/teams\/([^/]+)/);
         if (teamMatch) return new TeamNotFoundError(teamMatch[1]);
       }
 
-      if (url.includes('/files/')) {
-        const fileMatch = url.match(/\/files\/([^\/]+)/);
+      if (url.includes("/files/")) {
+        const fileMatch = url.match(/\/files\/([^/]+)/);
         if (fileMatch) return new FileNotFoundError(fileMatch[1]);
       }
 
-      if (url.includes('/components/')) {
-        const componentMatch = url.match(/\/components\/([^\/]+)/);
-        if (componentMatch) return new ComponentNotFoundError(componentMatch[1]);
+      if (url.includes("/components/")) {
+        const componentMatch = url.match(/\/components\/([^/]+)/);
+        if (componentMatch)
+          return new ComponentNotFoundError(componentMatch[1]);
       }
 
-      if (url.includes('/component_sets/')) {
-        const componentSetMatch = url.match(/\/component_sets\/([^\/]+)/);
-        if (componentSetMatch) return new ComponentSetNotFoundError(componentSetMatch[1]);
+      if (url.includes("/component_sets/")) {
+        const componentSetMatch = url.match(/\/component_sets\/([^/]+)/);
+        if (componentSetMatch)
+          return new ComponentSetNotFoundError(componentSetMatch[1]);
       }
 
-      if (url.includes('/styles/')) {
-        const styleMatch = url.match(/\/styles\/([^\/]+)/);
+      if (url.includes("/styles/")) {
+        const styleMatch = url.match(/\/styles\/([^/]+)/);
         if (styleMatch) return new StyleNotFoundError(styleMatch[1]);
       }
 
-      return new FigmaApiError('Resource not found', 'NOT_FOUND', { status, url });
+      return new FigmaApiError("Resource not found", "NOT_FOUND", {
+        status,
+        url,
+      });
 
-    case 429:
-      const retryAfter = response.headers.get('retry-after');
-      return new RateLimitError(retryAfter ? parseInt(retryAfter) : null, requestId);
+    case 429: {
+      const retryAfter = response.headers.get("retry-after");
+      return new RateLimitError(
+        retryAfter ? parseInt(retryAfter, 10) : null,
+        requestId,
+      );
+    }
 
     case 400:
-      return new ValidationError(body?.message || 'Bad request', null, body);
+      return new ValidationError(body?.message || "Bad request", null, body);
 
     case 500:
     case 502:
     case 503:
     case 504:
-      return new ServerError(body?.message || 'Server error', requestId);
+      return new ServerError(body?.message || "Server error", requestId);
 
     default:
       return new HttpError(status, statusText, url, body);
@@ -318,7 +349,7 @@ export function isRetryableError(error: any): boolean {
   }
 
   // Network errors are generally retryable
-  if (error instanceof NetworkError || error.code === 'NETWORK_ERROR') {
+  if (error instanceof NetworkError || error.code === "NETWORK_ERROR") {
     return true;
   }
 
@@ -343,5 +374,5 @@ export default {
   PaginationError,
   ScopeError,
   createErrorFromResponse,
-  isRetryableError
+  isRetryableError,
 };

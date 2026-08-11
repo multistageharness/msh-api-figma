@@ -3,9 +3,9 @@
  * Uses the native fetch API available in Node.js 18+ and browsers
  */
 
-import { FetchAdapter } from '../core/FetchAdapter.js';
-import { FetchRequest, FetchResponse } from '../types/index.js';
-import { NetworkError, TimeoutError } from '../errors/index.js';
+import { FetchAdapter } from "../core/FetchAdapter.js";
+import { NetworkError, TimeoutError } from "../errors/index.js";
+import type { FetchRequest, FetchResponse } from "../types/index.js";
 
 /**
  * Adapter that uses native fetch API
@@ -16,13 +16,19 @@ export class NativeFetchAdapter extends FetchAdapter {
    */
   async fetch<T = any>(request: FetchRequest): Promise<FetchResponse<T>> {
     const transformedRequest = this.transformRequest(request);
-    const { url, method = 'GET', headers, body, signal, timeout } = transformedRequest;
+    const {
+      url,
+      method = "GET",
+      headers,
+      body,
+      signal,
+      timeout,
+    } = transformedRequest;
 
     try {
       // Create timeout signal if timeout is specified
-      const finalSignal = timeout && !signal
-        ? this.createTimeoutSignal(timeout)
-        : signal;
+      const finalSignal =
+        timeout && !signal ? this.createTimeoutSignal(timeout) : signal;
 
       // Execute native fetch
       const response = await fetch(url, {
@@ -33,7 +39,7 @@ export class NativeFetchAdapter extends FetchAdapter {
       });
 
       // Parse response
-      const contentType = response.headers.get('content-type');
+      const contentType = response.headers.get("content-type");
       const data = await this.parseResponseData(response, contentType);
 
       // Create FetchResponse
@@ -46,16 +52,15 @@ export class NativeFetchAdapter extends FetchAdapter {
       };
 
       return this.transformResponse(fetchResponse);
-
     } catch (error: any) {
       // Handle timeout
-      if (error.name === 'AbortError') {
+      if (error.name === "AbortError") {
         throw new TimeoutError(timeout || 30000);
       }
 
       // Handle network errors
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new NetworkError('Network request failed', error);
+      if (error.name === "TypeError" && error.message.includes("fetch")) {
+        throw new NetworkError("Network request failed", error);
       }
 
       // Re-throw other errors

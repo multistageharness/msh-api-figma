@@ -4,16 +4,7 @@
  * Provides high-level methods that compose HTTP client operations
  */
 
-import {
-  ValidationError,
-  TeamNotFoundError,
-  FileNotFoundError,
-  ComponentNotFoundError,
-  ComponentSetNotFoundError,
-  StyleNotFoundError,
-  PaginationError,
-  ScopeError
-} from './exceptions.js';
+import { PaginationError, ValidationError } from "./exceptions.js";
 
 /**
  * Service class for Figma Components API operations
@@ -28,9 +19,14 @@ export class FigmaComponentsService {
    * @param {Object} options.fetcher - FigmaApiClient instance (required)
    * @param {Object} [options.logger=console] - Logger instance
    */
-  constructor({ fetcher, logger = console }: { fetcher?: any; logger?: any } = {}) {
+  constructor({
+    fetcher,
+    logger = console,
+  }: { fetcher?: any; logger?: any } = {}) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
     this.fetcher = fetcher;
     this.logger = logger;
@@ -41,13 +37,17 @@ export class FigmaComponentsService {
    * @private
    */
   _validateTeamId(teamId: string): void {
-    if (!teamId || typeof teamId !== 'string') {
-      throw new ValidationError('Team ID is required and must be a string', 'teamId', teamId);
+    if (!teamId || typeof teamId !== "string") {
+      throw new ValidationError(
+        "Team ID is required and must be a string",
+        "teamId",
+        teamId,
+      );
     }
 
     // Team IDs are typically numeric strings
     if (!/^\d+$/.test(teamId)) {
-      throw new ValidationError('Invalid team ID format', 'teamId', teamId);
+      throw new ValidationError("Invalid team ID format", "teamId", teamId);
     }
   }
 
@@ -56,13 +56,17 @@ export class FigmaComponentsService {
    * @private
    */
   _validateFileKey(fileKey: string): void {
-    if (!fileKey || typeof fileKey !== 'string') {
-      throw new ValidationError('File key is required and must be a string', 'fileKey', fileKey);
+    if (!fileKey || typeof fileKey !== "string") {
+      throw new ValidationError(
+        "File key is required and must be a string",
+        "fileKey",
+        fileKey,
+      );
     }
 
     // Figma file keys are typically alphanumeric with some special characters
     if (!/^[a-zA-Z0-9\-_]+$/.test(fileKey)) {
-      throw new ValidationError('Invalid file key format', 'fileKey', fileKey);
+      throw new ValidationError("Invalid file key format", "fileKey", fileKey);
     }
   }
 
@@ -71,13 +75,17 @@ export class FigmaComponentsService {
    * @private
    */
   _validateComponentKey(key: string): void {
-    if (!key || typeof key !== 'string') {
-      throw new ValidationError('Component key is required and must be a string', 'key', key);
+    if (!key || typeof key !== "string") {
+      throw new ValidationError(
+        "Component key is required and must be a string",
+        "key",
+        key,
+      );
     }
 
     // Component keys are typically alphanumeric with colons and dashes
     if (!/^[a-zA-Z0-9:\-_]+$/.test(key)) {
-      throw new ValidationError('Invalid component key format', 'key', key);
+      throw new ValidationError("Invalid component key format", "key", key);
     }
   }
 
@@ -90,20 +98,31 @@ export class FigmaComponentsService {
 
     if (pageSize !== undefined) {
       if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 1000) {
-        throw new PaginationError('Page size must be an integer between 1 and 1000', { pageSize });
+        throw new PaginationError(
+          "Page size must be an integer between 1 and 1000",
+          { pageSize },
+        );
       }
     }
 
     if (after !== undefined && before !== undefined) {
-      throw new PaginationError('Cannot specify both after and before cursors', { after, before });
+      throw new PaginationError(
+        "Cannot specify both after and before cursors",
+        { after, before },
+      );
     }
 
     if (after !== undefined && (!Number.isInteger(after) || after < 0)) {
-      throw new PaginationError('After cursor must be a non-negative integer', { after });
+      throw new PaginationError("After cursor must be a non-negative integer", {
+        after,
+      });
     }
 
     if (before !== undefined && (!Number.isInteger(before) || before < 0)) {
-      throw new PaginationError('Before cursor must be a non-negative integer', { before });
+      throw new PaginationError(
+        "Before cursor must be a non-negative integer",
+        { before },
+      );
     }
   }
 
@@ -114,10 +133,28 @@ export class FigmaComponentsService {
   _validateScopes(endpoint: string, scopes: string[]): void {
     // This is informational for developers - actual scope validation happens server-side
     const scopeMap: Record<string, string[]> = {
-      'team_library_content': ['getTeamComponents', 'getTeamComponentSets', 'getTeamStyles'],
-      'library_content': ['getFileComponents', 'getFileComponentSets', 'getFileStyles'],
-      'library_assets': ['getComponent', 'getComponentSet', 'getStyle'],
-      'files': ['getTeamComponents', 'getTeamComponentSets', 'getTeamStyles', 'getFileComponents', 'getFileComponentSets', 'getFileStyles', 'getComponent', 'getComponentSet', 'getStyle']
+      team_library_content: [
+        "getTeamComponents",
+        "getTeamComponentSets",
+        "getTeamStyles",
+      ],
+      library_content: [
+        "getFileComponents",
+        "getFileComponentSets",
+        "getFileStyles",
+      ],
+      library_assets: ["getComponent", "getComponentSet", "getStyle"],
+      files: [
+        "getTeamComponents",
+        "getTeamComponentSets",
+        "getTeamStyles",
+        "getFileComponents",
+        "getFileComponentSets",
+        "getFileStyles",
+        "getComponent",
+        "getComponentSet",
+        "getStyle",
+      ],
     };
 
     // Check if endpoint requires specific scopes
@@ -144,10 +181,16 @@ export class FigmaComponentsService {
    * @param {number} [options.before] - Cursor for pagination (exclusive with after)
    * @returns {Promise<Object>} Paginated list of components
    */
-  async getTeamComponents(teamId: string, options: Record<string, any> = {}): Promise<any> {
+  async getTeamComponents(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateTeamId(teamId);
     this._validatePaginationParams(options);
-    this._validateScopes('getTeamComponents', ['team_library_content', 'files']);
+    this._validateScopes("getTeamComponents", [
+      "team_library_content",
+      "files",
+    ]);
 
     const params: Record<string, any> = {};
 
@@ -170,7 +213,7 @@ export class FigmaComponentsService {
    */
   async getFileComponents(fileKey: string): Promise<any> {
     this._validateFileKey(fileKey);
-    this._validateScopes('getFileComponents', ['library_content', 'files']);
+    this._validateScopes("getFileComponents", ["library_content", "files"]);
 
     this.logger.debug(`Getting file components: ${fileKey}`);
 
@@ -187,7 +230,7 @@ export class FigmaComponentsService {
    */
   async getComponent(key: string): Promise<any> {
     this._validateComponentKey(key);
-    this._validateScopes('getComponent', ['library_assets', 'files']);
+    this._validateScopes("getComponent", ["library_assets", "files"]);
 
     this.logger.debug(`Getting component: ${key}`);
 
@@ -210,10 +253,16 @@ export class FigmaComponentsService {
    * @param {number} [options.before] - Cursor for pagination (exclusive with after)
    * @returns {Promise<Object>} Paginated list of component sets
    */
-  async getTeamComponentSets(teamId: string, options: Record<string, any> = {}): Promise<any> {
+  async getTeamComponentSets(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateTeamId(teamId);
     this._validatePaginationParams(options);
-    this._validateScopes('getTeamComponentSets', ['team_library_content', 'files']);
+    this._validateScopes("getTeamComponentSets", [
+      "team_library_content",
+      "files",
+    ]);
 
     const params: Record<string, any> = {};
 
@@ -236,7 +285,7 @@ export class FigmaComponentsService {
    */
   async getFileComponentSets(fileKey: string): Promise<any> {
     this._validateFileKey(fileKey);
-    this._validateScopes('getFileComponentSets', ['library_content', 'files']);
+    this._validateScopes("getFileComponentSets", ["library_content", "files"]);
 
     this.logger.debug(`Getting file component sets: ${fileKey}`);
 
@@ -253,7 +302,7 @@ export class FigmaComponentsService {
    */
   async getComponentSet(key: string): Promise<any> {
     this._validateComponentKey(key);
-    this._validateScopes('getComponentSet', ['library_assets', 'files']);
+    this._validateScopes("getComponentSet", ["library_assets", "files"]);
 
     this.logger.debug(`Getting component set: ${key}`);
 
@@ -276,10 +325,13 @@ export class FigmaComponentsService {
    * @param {number} [options.before] - Cursor for pagination (exclusive with after)
    * @returns {Promise<Object>} Paginated list of styles
    */
-  async getTeamStyles(teamId: string, options: Record<string, any> = {}): Promise<any> {
+  async getTeamStyles(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateTeamId(teamId);
     this._validatePaginationParams(options);
-    this._validateScopes('getTeamStyles', ['team_library_content', 'files']);
+    this._validateScopes("getTeamStyles", ["team_library_content", "files"]);
 
     const params: Record<string, any> = {};
 
@@ -302,7 +354,7 @@ export class FigmaComponentsService {
    */
   async getFileStyles(fileKey: string): Promise<any> {
     this._validateFileKey(fileKey);
-    this._validateScopes('getFileStyles', ['library_content', 'files']);
+    this._validateScopes("getFileStyles", ["library_content", "files"]);
 
     this.logger.debug(`Getting file styles: ${fileKey}`);
 
@@ -319,7 +371,7 @@ export class FigmaComponentsService {
    */
   async getStyle(key: string): Promise<any> {
     this._validateComponentKey(key);
-    this._validateScopes('getStyle', ['library_assets', 'files']);
+    this._validateScopes("getStyle", ["library_assets", "files"]);
 
     this.logger.debug(`Getting style: ${key}`);
 
@@ -339,30 +391,34 @@ export class FigmaComponentsService {
    */
   async batchGetComponents(keys: string[]): Promise<any> {
     if (!Array.isArray(keys) || keys.length === 0) {
-      throw new ValidationError('Component keys must be a non-empty array', 'keys', keys);
+      throw new ValidationError(
+        "Component keys must be a non-empty array",
+        "keys",
+        keys,
+      );
     }
 
     this.logger.debug(`Batch getting ${keys.length} components`);
 
-    const promises = keys.map(key =>
+    const promises = keys.map((key) =>
       this.getComponent(key)
-        .then(data => ({
+        .then((data) => ({
           key,
           data,
-          success: true
+          success: true,
         }))
-        .catch(error => ({
+        .catch((error) => ({
           key,
           error: error.message,
-          success: false
-        }))
+          success: false,
+        })),
     );
 
     const results = await Promise.all(promises);
 
     // Separate successful and failed results
-    const successful = results.filter(result => result.success);
-    const failed = results.filter(result => !result.success);
+    const successful = results.filter((result) => result.success);
+    const failed = results.filter((result) => !result.success);
 
     if (failed.length > 0) {
       this.logger.warn(`Failed to get ${failed.length} components:`, failed);
@@ -371,7 +427,7 @@ export class FigmaComponentsService {
     return {
       successful,
       failed,
-      total: keys.length
+      total: keys.length,
     };
   }
 
@@ -384,39 +440,46 @@ export class FigmaComponentsService {
    */
   async batchGetComponentSets(keys: string[]): Promise<any> {
     if (!Array.isArray(keys) || keys.length === 0) {
-      throw new ValidationError('Component set keys must be a non-empty array', 'keys', keys);
+      throw new ValidationError(
+        "Component set keys must be a non-empty array",
+        "keys",
+        keys,
+      );
     }
 
     this.logger.debug(`Batch getting ${keys.length} component sets`);
 
-    const promises = keys.map(key =>
+    const promises = keys.map((key) =>
       this.getComponentSet(key)
-        .then(data => ({
+        .then((data) => ({
           key,
           data,
-          success: true
+          success: true,
         }))
-        .catch(error => ({
+        .catch((error) => ({
           key,
           error: error.message,
-          success: false
-        }))
+          success: false,
+        })),
     );
 
     const results = await Promise.all(promises);
 
     // Separate successful and failed results
-    const successful = results.filter(result => result.success);
-    const failed = results.filter(result => !result.success);
+    const successful = results.filter((result) => result.success);
+    const failed = results.filter((result) => !result.success);
 
     if (failed.length > 0) {
-      this.logger.warn(`Failed to get ${failed.length} component sets:`, failed);
+      this.logger.warn(
+        `Failed to get ${failed.length} component sets:`,
+        failed,
+      );
     }
 
     return {
       successful,
       failed,
-      total: keys.length
+      total: keys.length,
     };
   }
 
@@ -429,30 +492,34 @@ export class FigmaComponentsService {
    */
   async batchGetStyles(keys: string[]): Promise<any> {
     if (!Array.isArray(keys) || keys.length === 0) {
-      throw new ValidationError('Style keys must be a non-empty array', 'keys', keys);
+      throw new ValidationError(
+        "Style keys must be a non-empty array",
+        "keys",
+        keys,
+      );
     }
 
     this.logger.debug(`Batch getting ${keys.length} styles`);
 
-    const promises = keys.map(key =>
+    const promises = keys.map((key) =>
       this.getStyle(key)
-        .then(data => ({
+        .then((data) => ({
           key,
           data,
-          success: true
+          success: true,
         }))
-        .catch(error => ({
+        .catch((error) => ({
           key,
           error: error.message,
-          success: false
-        }))
+          success: false,
+        })),
     );
 
     const results = await Promise.all(promises);
 
     // Separate successful and failed results
-    const successful = results.filter(result => result.success);
-    const failed = results.filter(result => !result.success);
+    const successful = results.filter((result) => result.success);
+    const failed = results.filter((result) => !result.success);
 
     if (failed.length > 0) {
       this.logger.warn(`Failed to get ${failed.length} styles:`, failed);
@@ -461,7 +528,7 @@ export class FigmaComponentsService {
     return {
       successful,
       failed,
-      total: keys.length
+      total: keys.length,
     };
   }
 
@@ -477,7 +544,10 @@ export class FigmaComponentsService {
    * @param {Object} [options={}] - Request options for pagination
    * @returns {Promise<Object>} Combined library content
    */
-  async getTeamLibraryContent(teamId: string, options: Record<string, any> = {}): Promise<any> {
+  async getTeamLibraryContent(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateTeamId(teamId);
 
     this.logger.debug(`Getting complete team library content: ${teamId}`);
@@ -485,7 +555,7 @@ export class FigmaComponentsService {
     const [components, componentSets, styles] = await Promise.all([
       this.getTeamComponents(teamId, options),
       this.getTeamComponentSets(teamId, options),
-      this.getTeamStyles(teamId, options)
+      this.getTeamStyles(teamId, options),
     ]);
 
     return {
@@ -493,10 +563,14 @@ export class FigmaComponentsService {
       componentSets,
       styles,
       summary: {
-        componentsCount: components.meta?.total_count || components.components?.length || 0,
-        componentSetsCount: componentSets.meta?.total_count || componentSets.component_sets?.length || 0,
-        stylesCount: styles.meta?.total_count || styles.styles?.length || 0
-      }
+        componentsCount:
+          components.meta?.total_count || components.components?.length || 0,
+        componentSetsCount:
+          componentSets.meta?.total_count ||
+          componentSets.component_sets?.length ||
+          0,
+        stylesCount: styles.meta?.total_count || styles.styles?.length || 0,
+      },
     };
   }
 
@@ -515,7 +589,7 @@ export class FigmaComponentsService {
     const [components, componentSets, styles] = await Promise.all([
       this.getFileComponents(fileKey),
       this.getFileComponentSets(fileKey),
-      this.getFileStyles(fileKey)
+      this.getFileStyles(fileKey),
     ]);
 
     return {
@@ -525,8 +599,8 @@ export class FigmaComponentsService {
       summary: {
         componentsCount: components.components?.length || 0,
         componentSetsCount: componentSets.component_sets?.length || 0,
-        stylesCount: styles.styles?.length || 0
-      }
+        stylesCount: styles.styles?.length || 0,
+      },
     };
   }
 
@@ -539,18 +613,28 @@ export class FigmaComponentsService {
    * @param {Object} [options={}] - Search options
    * @returns {Promise<Object[]>} Matching components
    */
-  async searchTeamComponentsByName(teamId: string, searchTerm: string, options: Record<string, any> = {}): Promise<any[]> {
-    if (!searchTerm || typeof searchTerm !== 'string') {
-      throw new ValidationError('Search term is required and must be a string', 'searchTerm', searchTerm);
+  async searchTeamComponentsByName(
+    teamId: string,
+    searchTerm: string,
+    options: Record<string, any> = {},
+  ): Promise<any[]> {
+    if (!searchTerm || typeof searchTerm !== "string") {
+      throw new ValidationError(
+        "Search term is required and must be a string",
+        "searchTerm",
+        searchTerm,
+      );
     }
 
-    this.logger.debug(`Searching team components by name: ${teamId}, term: ${searchTerm}`);
+    this.logger.debug(
+      `Searching team components by name: ${teamId}, term: ${searchTerm}`,
+    );
 
     const response = await this.getTeamComponents(teamId, options);
     const components = response.components || [];
 
     return components.filter((component: any) =>
-      component.name && component.name.toLowerCase().includes(searchTerm.toLowerCase())
+      component.name?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }
 

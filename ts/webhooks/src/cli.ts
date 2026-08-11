@@ -4,45 +4,49 @@
  * CLI interface for figma-webhooks
  */
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import { FigmaApiClient } from '@figma-api/fetch';
-import { FigmaWebhooksSDK } from './sdk.js';
+import { FigmaApiClient } from "@figma-api/fetch";
+import chalk from "chalk";
+import { Command } from "commander";
+import ora from "ora";
+import { FigmaWebhooksSDK } from "./sdk.js";
 
 const program = new Command();
 
 // Configure CLI
 program
-  .name('figma-webhooks')
-  .description('CLI for Figma Webhooks API v2')
-  .version('1.0.0')
-  .option('-t, --token <token>', 'Figma API token (or set FIGMA_TOKEN env var)')
-  .option('-b, --base-url <url>', 'API base URL', 'https://api.figma.com')
-  .option('-v, --verbose', 'Verbose output')
-  .option('--json', 'Output as JSON');
+  .name("figma-webhooks")
+  .description("CLI for Figma Webhooks API v2")
+  .version("1.0.0")
+  .option("-t, --token <token>", "Figma API token (or set FIGMA_TOKEN env var)")
+  .option("-b, --base-url <url>", "API base URL", "https://api.figma.com")
+  .option("-v, --verbose", "Verbose output")
+  .option("--json", "Output as JSON");
 
 // Helper to get SDK instance
 function getSDK(options: any): FigmaWebhooksSDK {
   const token = options.token || process.env.FIGMA_TOKEN;
 
   if (!token) {
-    console.error(chalk.red('Error: Figma API token is required'));
-    console.error('Set via --token flag or FIGMA_TOKEN environment variable');
-    console.error('Get your token at: https://www.figma.com/developers/api#access-tokens');
+    console.error(chalk.red("Error: Figma API token is required"));
+    console.error("Set via --token flag or FIGMA_TOKEN environment variable");
+    console.error(
+      "Get your token at: https://www.figma.com/developers/api#access-tokens",
+    );
     process.exit(1);
   }
 
   // Create fetcher first
   const fetcher = new FigmaApiClient({
     apiToken: token,
-    baseUrl: options.baseUrl || 'https://api.figma.com'
+    baseUrl: options.baseUrl || "https://api.figma.com",
   });
 
   // Pass fetcher to SDK
   return new FigmaWebhooksSDK({
     fetcher,
-    logger: options.verbose ? console : { debug: () => {}, log: () => {}, error: console.error }
+    logger: options.verbose
+      ? console
+      : { debug: () => {}, log: () => {}, error: console.error },
   });
 }
 
@@ -52,7 +56,7 @@ function formatOutput(data: any, options: any): void {
     console.log(JSON.stringify(data, null, 2));
   } else if (Array.isArray(data)) {
     if (data.length === 0) {
-      console.log(chalk.gray('No items found'));
+      console.log(chalk.gray("No items found"));
     } else {
       data.forEach((item, index) => {
         console.log(`${index + 1}. ${formatWebhook(item)}`);
@@ -65,9 +69,10 @@ function formatOutput(data: any, options: any): void {
 
 // Helper to format webhook for display
 function formatWebhook(webhook: any): string {
-  const status = webhook.status === 'ACTIVE'
-    ? chalk.green('ACTIVE')
-    : chalk.yellow('PAUSED');
+  const status =
+    webhook.status === "ACTIVE"
+      ? chalk.green("ACTIVE")
+      : chalk.yellow("PAUSED");
 
   const context = `${webhook.context}:${webhook.context_id}`;
 
@@ -76,21 +81,21 @@ function formatWebhook(webhook: any): string {
     chalk.white(webhook.event_type),
     status,
     chalk.gray(context),
-    chalk.underline(webhook.endpoint)
-  ].join(' | ');
+    chalk.underline(webhook.endpoint),
+  ].join(" | ");
 }
 
 // === Webhook Management Commands ===
 
 // List webhooks
 program
-  .command('list')
-  .description('List webhooks')
-  .option('-c, --context <type>', 'Context type (team, project, file)')
-  .option('-i, --context-id <id>', 'Context ID')
-  .option('-p, --plan <id>', 'Plan API ID (lists all webhooks)')
+  .command("list")
+  .description("List webhooks")
+  .option("-c, --context <type>", "Context type (team, project, file)")
+  .option("-i, --context-id <id>", "Context ID")
+  .option("-p, --plan <id>", "Plan API ID (lists all webhooks)")
   .action(async (options: any, command: any) => {
-    const spinner = ora('Fetching webhooks...').start();
+    const spinner = ora("Fetching webhooks...").start();
     const sdk = getSDK(command.optsWithGlobals());
     const globalOpts = command.optsWithGlobals();
 
@@ -99,11 +104,13 @@ program
 
       if (options.plan) {
         webhooks = await sdk.listAllWebhooks(options.plan);
-        spinner.succeed(`Found ${webhooks.length} webhooks across all contexts`);
+        spinner.succeed(
+          `Found ${webhooks.length} webhooks across all contexts`,
+        );
       } else {
         webhooks = await sdk.listWebhooks({
           context: options.context,
-          contextId: options.contextId
+          contextId: options.contextId,
         });
         spinner.succeed(`Found ${webhooks.length} webhooks`);
       }
@@ -120,8 +127,8 @@ program
 
 // Get specific webhook
 program
-  .command('get <webhook-id>')
-  .description('Get webhook by ID')
+  .command("get <webhook-id>")
+  .description("Get webhook by ID")
   .action(async (webhookId: string, command: any) => {
     const spinner = ora(`Fetching webhook ${webhookId}...`).start();
     const sdk = getSDK(command.optsWithGlobals());
@@ -131,11 +138,11 @@ program
       const webhook = await sdk.getWebhook(webhookId);
 
       if (!webhook) {
-        spinner.warn('Webhook not found');
+        spinner.warn("Webhook not found");
         process.exit(1);
       }
 
-      spinner.succeed('Webhook found');
+      spinner.succeed("Webhook found");
       formatOutput(webhook, globalOpts);
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -148,17 +155,20 @@ program
 
 // Create webhook
 program
-  .command('create')
-  .description('Create a new webhook')
-  .requiredOption('-e, --event <type>', 'Event type (FILE_UPDATE, FILE_DELETE, etc.)')
-  .requiredOption('-c, --context <type>', 'Context type (team, project, file)')
-  .requiredOption('-i, --context-id <id>', 'Context ID')
-  .requiredOption('-u, --endpoint <url>', 'Webhook endpoint URL')
-  .requiredOption('-p, --passcode <code>', 'Webhook passcode')
-  .option('-d, --description <text>', 'Webhook description')
-  .option('--paused', 'Create webhook in paused state')
+  .command("create")
+  .description("Create a new webhook")
+  .requiredOption(
+    "-e, --event <type>",
+    "Event type (FILE_UPDATE, FILE_DELETE, etc.)",
+  )
+  .requiredOption("-c, --context <type>", "Context type (team, project, file)")
+  .requiredOption("-i, --context-id <id>", "Context ID")
+  .requiredOption("-u, --endpoint <url>", "Webhook endpoint URL")
+  .requiredOption("-p, --passcode <code>", "Webhook passcode")
+  .option("-d, --description <text>", "Webhook description")
+  .option("--paused", "Create webhook in paused state")
   .action(async (options: any, command: any) => {
-    const spinner = ora('Creating webhook...').start();
+    const spinner = ora("Creating webhook...").start();
     const sdk = getSDK(command.optsWithGlobals());
     const globalOpts = command.optsWithGlobals();
 
@@ -169,8 +179,8 @@ program
         contextId: options.contextId,
         endpoint: options.endpoint,
         passcode: options.passcode,
-        status: options.paused ? 'PAUSED' : 'ACTIVE',
-        description: options.description
+        status: options.paused ? "PAUSED" : "ACTIVE",
+        description: options.description,
       });
 
       spinner.succeed(`Webhook created: ${webhook.id}`);
@@ -186,13 +196,13 @@ program
 
 // Update webhook
 program
-  .command('update <webhook-id>')
-  .description('Update an existing webhook')
-  .option('-e, --event <type>', 'New event type')
-  .option('-u, --endpoint <url>', 'New endpoint URL')
-  .option('-p, --passcode <code>', 'New passcode')
-  .option('-d, --description <text>', 'New description')
-  .option('--status <status>', 'New status (ACTIVE, PAUSED)')
+  .command("update <webhook-id>")
+  .description("Update an existing webhook")
+  .option("-e, --event <type>", "New event type")
+  .option("-u, --endpoint <url>", "New endpoint URL")
+  .option("-p, --passcode <code>", "New passcode")
+  .option("-d, --description <text>", "New description")
+  .option("--status <status>", "New status (ACTIVE, PAUSED)")
   .action(async (webhookId: string, options: any, command: any) => {
     const spinner = ora(`Updating webhook ${webhookId}...`).start();
     const sdk = getSDK(command.optsWithGlobals());
@@ -203,12 +213,13 @@ program
       if (options.event) updates.eventType = options.event;
       if (options.endpoint) updates.endpoint = options.endpoint;
       if (options.passcode) updates.passcode = options.passcode;
-      if (options.description !== undefined) updates.description = options.description;
+      if (options.description !== undefined)
+        updates.description = options.description;
       if (options.status) updates.status = options.status;
 
       const webhook = await sdk.updateWebhook(webhookId, updates);
 
-      spinner.succeed('Webhook updated');
+      spinner.succeed("Webhook updated");
       formatOutput(webhook, globalOpts);
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -221,16 +232,18 @@ program
 
 // Delete webhook
 program
-  .command('delete <webhook-id>')
-  .description('Delete a webhook')
-  .option('-f, --force', 'Skip confirmation')
+  .command("delete <webhook-id>")
+  .description("Delete a webhook")
+  .option("-f, --force", "Skip confirmation")
   .action(async (webhookId: string, options: any, command: any) => {
     const sdk = getSDK(command.optsWithGlobals());
     const globalOpts = command.optsWithGlobals();
 
     if (!options.force) {
-      console.log(chalk.yellow(`Are you sure you want to delete webhook ${webhookId}?`));
-      console.log(chalk.gray('Use --force to skip this confirmation'));
+      console.log(
+        chalk.yellow(`Are you sure you want to delete webhook ${webhookId}?`),
+      );
+      console.log(chalk.gray("Use --force to skip this confirmation"));
       process.exit(0);
     }
 
@@ -240,9 +253,9 @@ program
       const deleted = await sdk.deleteWebhook(webhookId);
 
       if (deleted) {
-        spinner.succeed('Webhook deleted');
+        spinner.succeed("Webhook deleted");
       } else {
-        spinner.warn('Webhook was already deleted');
+        spinner.warn("Webhook was already deleted");
       }
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -257,8 +270,8 @@ program
 
 // Pause webhook
 program
-  .command('pause <webhook-id>')
-  .description('Pause a webhook')
+  .command("pause <webhook-id>")
+  .description("Pause a webhook")
   .action(async (webhookId: string, command: any) => {
     const spinner = ora(`Pausing webhook ${webhookId}...`).start();
     const sdk = getSDK(command.optsWithGlobals());
@@ -266,7 +279,7 @@ program
 
     try {
       const webhook = await sdk.pauseWebhook(webhookId);
-      spinner.succeed('Webhook paused');
+      spinner.succeed("Webhook paused");
       formatOutput(webhook, globalOpts);
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -279,8 +292,8 @@ program
 
 // Activate webhook
 program
-  .command('activate <webhook-id>')
-  .description('Activate a webhook')
+  .command("activate <webhook-id>")
+  .description("Activate a webhook")
   .action(async (webhookId: string, command: any) => {
     const spinner = ora(`Activating webhook ${webhookId}...`).start();
     const sdk = getSDK(command.optsWithGlobals());
@@ -288,7 +301,7 @@ program
 
     try {
       const webhook = await sdk.activateWebhook(webhookId);
-      spinner.succeed('Webhook activated');
+      spinner.succeed("Webhook activated");
       formatOutput(webhook, globalOpts);
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -303,8 +316,8 @@ program
 
 // Get webhook history
 program
-  .command('history <webhook-id>')
-  .description('Get webhook delivery history')
+  .command("history <webhook-id>")
+  .description("Get webhook delivery history")
   .action(async (webhookId: string, command: any) => {
     const spinner = ora(`Fetching history for webhook ${webhookId}...`).start();
     const sdk = getSDK(command.optsWithGlobals());
@@ -319,13 +332,17 @@ program
       } else {
         history.forEach((request: any, index: number) => {
           const status = request.response_info
-            ? (request.response_info.status < 400 ? chalk.green('✓') : chalk.red('✗'))
-            : chalk.yellow('?');
+            ? request.response_info.status < 400
+              ? chalk.green("✓")
+              : chalk.red("✗")
+            : chalk.yellow("?");
 
-          console.log(`${index + 1}. ${status} ${request.request_info.sent_at} → ${request.response_info?.status || 'no response'}`);
+          console.log(
+            `${index + 1}. ${status} ${request.request_info.sent_at} → ${request.response_info?.status || "no response"}`,
+          );
 
           if (request.error_msg) {
-            console.log(`   ${chalk.red('Error:')} ${request.error_msg}`);
+            console.log(`   ${chalk.red("Error:")} ${request.error_msg}`);
           }
         });
       }
@@ -340,8 +357,8 @@ program
 
 // Check webhook health
 program
-  .command('health <webhook-id>')
-  .description('Check webhook health status')
+  .command("health <webhook-id>")
+  .description("Check webhook health status")
   .action(async (webhookId: string, command: any) => {
     const spinner = ora(`Checking health of webhook ${webhookId}...`).start();
     const sdk = getSDK(command.optsWithGlobals());
@@ -350,12 +367,14 @@ program
     try {
       const health = await sdk.checkWebhookHealth(webhookId);
 
-      const statusColor = ({
-        healthy: chalk.green,
-        degraded: chalk.yellow,
-        failing: chalk.red,
-        unknown: chalk.gray
-      } as Record<string, any>)[health.status];
+      const statusColor = (
+        {
+          healthy: chalk.green,
+          degraded: chalk.yellow,
+          failing: chalk.red,
+          unknown: chalk.gray,
+        } as Record<string, any>
+      )[health.status];
 
       spinner.succeed(`Health check complete`);
 
@@ -389,8 +408,8 @@ program
 
 // Test endpoint
 program
-  .command('test-endpoint <url>')
-  .description('Test webhook endpoint connectivity')
+  .command("test-endpoint <url>")
+  .description("Test webhook endpoint connectivity")
   .action(async (url: string, command: any) => {
     const spinner = ora(`Testing endpoint ${url}...`).start();
     const sdk = getSDK(command.optsWithGlobals());
@@ -400,7 +419,9 @@ program
       const result = await sdk.testWebhookEndpoint(url);
 
       if (result.reachable) {
-        spinner.succeed(`Endpoint is reachable (${result.status} ${result.statusText})`);
+        spinner.succeed(
+          `Endpoint is reachable (${result.status} ${result.statusText})`,
+        );
       } else {
         spinner.fail(`Endpoint is not reachable: ${result.error}`);
       }
@@ -419,14 +440,14 @@ program
 
 // Search webhooks
 program
-  .command('search')
-  .description('Search for webhooks')
-  .requiredOption('-p, --plan <id>', 'Plan API ID')
-  .option('-e, --endpoint <url>', 'Search by endpoint URL')
-  .option('-t, --event-type <type>', 'Search by event type')
-  .option('--inactive', 'Find only inactive webhooks')
+  .command("search")
+  .description("Search for webhooks")
+  .requiredOption("-p, --plan <id>", "Plan API ID")
+  .option("-e, --endpoint <url>", "Search by endpoint URL")
+  .option("-t, --event-type <type>", "Search by event type")
+  .option("--inactive", "Find only inactive webhooks")
   .action(async (options: any, command: any) => {
-    const spinner = ora('Searching webhooks...').start();
+    const spinner = ora("Searching webhooks...").start();
     const sdk = getSDK(command.optsWithGlobals());
     const globalOpts = command.optsWithGlobals();
 
@@ -434,11 +455,21 @@ program
       let webhooks;
 
       if (options.endpoint) {
-        webhooks = await sdk.findWebhooksByEndpoint(options.endpoint, options.plan);
-        spinner.succeed(`Found ${webhooks.length} webhooks with endpoint: ${options.endpoint}`);
+        webhooks = await sdk.findWebhooksByEndpoint(
+          options.endpoint,
+          options.plan,
+        );
+        spinner.succeed(
+          `Found ${webhooks.length} webhooks with endpoint: ${options.endpoint}`,
+        );
       } else if (options.eventType) {
-        webhooks = await sdk.findWebhooksByEventType(options.eventType, options.plan);
-        spinner.succeed(`Found ${webhooks.length} webhooks for event type: ${options.eventType}`);
+        webhooks = await sdk.findWebhooksByEventType(
+          options.eventType,
+          options.plan,
+        );
+        spinner.succeed(
+          `Found ${webhooks.length} webhooks for event type: ${options.eventType}`,
+        );
       } else if (options.inactive) {
         webhooks = await sdk.findInactiveWebhooks(options.plan);
         spinner.succeed(`Found ${webhooks.length} inactive webhooks`);
@@ -459,25 +490,29 @@ program
 
 // Show supported values
 program
-  .command('info')
-  .description('Show supported event types and contexts')
+  .command("info")
+  .description("Show supported event types and contexts")
   .action(async (command: any) => {
     const sdk = getSDK(command.optsWithGlobals());
     const globalOpts = command.optsWithGlobals();
 
     const info = {
       eventTypes: sdk.getSupportedEventTypes(),
-      contextTypes: sdk.getSupportedContextTypes()
+      contextTypes: sdk.getSupportedContextTypes(),
     };
 
     if (globalOpts.json) {
       formatOutput(info, globalOpts);
     } else {
-      console.log(chalk.blue('Supported Event Types:'));
-      info.eventTypes.forEach((type: string) => console.log(`  • ${type}`));
+      console.log(chalk.blue("Supported Event Types:"));
+      info.eventTypes.forEach((type: string) => {
+        console.log(`  • ${type}`);
+      });
 
-      console.log(chalk.blue('\nSupported Context Types:'));
-      info.contextTypes.forEach((type: string) => console.log(`  • ${type}`));
+      console.log(chalk.blue("\nSupported Context Types:"));
+      info.contextTypes.forEach((type: string) => {
+        console.log(`  • ${type}`);
+      });
     }
   });
 
@@ -485,42 +520,48 @@ program
 
 // Bulk create
 program
-  .command('bulk-create')
-  .description('Create multiple webhooks from JSON file')
-  .requiredOption('-f, --file <path>', 'JSON file with webhook configurations')
+  .command("bulk-create")
+  .description("Create multiple webhooks from JSON file")
+  .requiredOption("-f, --file <path>", "JSON file with webhook configurations")
   .action(async (options: any, command: any) => {
-    const fs = await import('fs/promises');
-    const spinner = ora('Reading webhook configurations...').start();
+    const fs = await import("node:fs/promises");
+    const spinner = ora("Reading webhook configurations...").start();
     const sdk = getSDK(command.optsWithGlobals());
     const globalOpts = command.optsWithGlobals();
 
     try {
-      const data = JSON.parse(await fs.readFile(options.file, 'utf-8'));
+      const data = JSON.parse(await fs.readFile(options.file, "utf-8"));
       const contextIds = data.contextIds || [];
       const config = data.config || {};
 
       if (!contextIds.length || !config.context) {
-        throw new Error('Invalid file format. Expected: { "contextIds": [...], "config": {...} }');
+        throw new Error(
+          'Invalid file format. Expected: { "contextIds": [...], "config": {...} }',
+        );
       }
 
       spinner.text = `Creating ${contextIds.length} webhooks...`;
 
       const results = await sdk.createBulkWebhooks(contextIds, config);
 
-      spinner.succeed(`Created ${results.created.length} webhooks, ${results.errors.length} errors`);
+      spinner.succeed(
+        `Created ${results.created.length} webhooks, ${results.errors.length} errors`,
+      );
 
       if (globalOpts.json) {
         formatOutput(results, globalOpts);
       } else {
         if (results.created.length > 0) {
-          console.log(chalk.green('\nSuccessfully created:'));
+          console.log(chalk.green("\nSuccessfully created:"));
           results.created.forEach((webhook: any) => {
-            console.log(`  ✓ ${webhook.id} (${webhook.context}:${webhook.context_id})`);
+            console.log(
+              `  ✓ ${webhook.id} (${webhook.context}:${webhook.context_id})`,
+            );
           });
         }
 
         if (results.errors.length > 0) {
-          console.log(chalk.red('\nErrors:'));
+          console.log(chalk.red("\nErrors:"));
           results.errors.forEach((error: any) => {
             console.log(`  ✗ ${error.contextId}: ${error.error}`);
           });

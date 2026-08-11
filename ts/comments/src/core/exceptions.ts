@@ -34,7 +34,7 @@ export class FigmaCommentsError extends Error {
       code: this.code,
       meta: this.meta,
       timestamp: this.timestamp,
-      stack: this.stack
+      stack: this.stack,
     };
   }
 }
@@ -46,8 +46,13 @@ export class ApiError extends FigmaCommentsError {
   status: number;
   response: any;
 
-  constructor(message: string, status: number, response: any = null, meta: Record<string, any> = {}) {
-    super(message, 'API_ERROR', { status, response, ...meta });
+  constructor(
+    message: string,
+    status: number,
+    response: any = null,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "API_ERROR", { status, response, ...meta });
     this.status = status;
     this.response = response;
   }
@@ -62,8 +67,8 @@ export class RateLimitError extends FigmaCommentsError {
   constructor(retryAfter: any = null, meta: Record<string, any> = {}) {
     const message = retryAfter
       ? `Rate limit exceeded. Retry after ${retryAfter} seconds`
-      : 'Rate limit exceeded';
-    super(message, 'RATE_LIMIT', { retryAfter, ...meta });
+      : "Rate limit exceeded";
+    super(message, "RATE_LIMIT", { retryAfter, ...meta });
     this.retryAfter = retryAfter;
   }
 }
@@ -72,14 +77,17 @@ export class RateLimitError extends FigmaCommentsError {
  * Authentication and authorization errors
  */
 export class AuthenticationError extends FigmaCommentsError {
-  constructor(message = 'Authentication failed', meta: Record<string, any> = {}) {
-    super(message, 'AUTH_ERROR', meta);
+  constructor(
+    message = "Authentication failed",
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "AUTH_ERROR", meta);
   }
 }
 
 export class AuthorizationError extends FigmaCommentsError {
-  constructor(message = 'Access denied', meta: Record<string, any> = {}) {
-    super(message, 'AUTHORIZATION_ERROR', meta);
+  constructor(message = "Access denied", meta: Record<string, any> = {}) {
+    super(message, "AUTHORIZATION_ERROR", meta);
   }
 }
 
@@ -90,8 +98,13 @@ export class ValidationError extends FigmaCommentsError {
   field: any;
   value: any;
 
-  constructor(message: string, field: any = null, value: any = null, meta: Record<string, any> = {}) {
-    super(message, 'VALIDATION_ERROR', { field, value, ...meta });
+  constructor(
+    message: string,
+    field: any = null,
+    value: any = null,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "VALIDATION_ERROR", { field, value, ...meta });
     this.field = field;
     this.value = value;
   }
@@ -104,11 +117,15 @@ export class NotFoundError extends FigmaCommentsError {
   resource: string;
   identifier: any;
 
-  constructor(resource: string, identifier: any = null, meta: Record<string, any> = {}) {
+  constructor(
+    resource: string,
+    identifier: any = null,
+    meta: Record<string, any> = {},
+  ) {
     const message = identifier
       ? `${resource} with identifier '${identifier}' not found`
       : `${resource} not found`;
-    super(message, 'NOT_FOUND', { resource, identifier, ...meta });
+    super(message, "NOT_FOUND", { resource, identifier, ...meta });
     this.resource = resource;
     this.identifier = identifier;
   }
@@ -118,8 +135,11 @@ export class NotFoundError extends FigmaCommentsError {
  * Network and connectivity errors
  */
 export class NetworkError extends FigmaCommentsError {
-  constructor(message = 'Network error occurred', meta: Record<string, any> = {}) {
-    super(message, 'NETWORK_ERROR', meta);
+  constructor(
+    message = "Network error occurred",
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "NETWORK_ERROR", meta);
   }
 }
 
@@ -129,8 +149,12 @@ export class NetworkError extends FigmaCommentsError {
 export class ConfigurationError extends FigmaCommentsError {
   setting: any;
 
-  constructor(message: string, setting: any = null, meta: Record<string, any> = {}) {
-    super(message, 'CONFIG_ERROR', { setting, ...meta });
+  constructor(
+    message: string,
+    setting: any = null,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "CONFIG_ERROR", { setting, ...meta });
     this.setting = setting;
   }
 }
@@ -141,8 +165,12 @@ export class ConfigurationError extends FigmaCommentsError {
 export class CommentError extends FigmaCommentsError {
   commentId: any;
 
-  constructor(message: string, commentId: any = null, meta: Record<string, any> = {}) {
-    super(message, 'COMMENT_ERROR', { commentId, ...meta });
+  constructor(
+    message: string,
+    commentId: any = null,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "COMMENT_ERROR", { commentId, ...meta });
     this.commentId = commentId;
   }
 }
@@ -150,12 +178,15 @@ export class CommentError extends FigmaCommentsError {
 export class CommentPermissionError extends CommentError {
   action: string;
 
-  constructor(action: string, commentId: any = null, meta: Record<string, any> = {}) {
-    super(
-      `Permission denied for action '${action}' on comment`,
-      commentId,
-      { action, ...meta }
-    );
+  constructor(
+    action: string,
+    commentId: any = null,
+    meta: Record<string, any> = {},
+  ) {
+    super(`Permission denied for action '${action}' on comment`, commentId, {
+      action,
+      ...meta,
+    });
     this.action = action;
   }
 }
@@ -163,7 +194,12 @@ export class CommentPermissionError extends CommentError {
 export class CommentValidationError extends CommentError {
   field: any;
 
-  constructor(message: string, field: any = null, commentId: any = null, meta: Record<string, any> = {}) {
+  constructor(
+    message: string,
+    field: any = null,
+    commentId: any = null,
+    meta: Record<string, any> = {},
+  ) {
     super(message, commentId, { field, ...meta });
     this.field = field;
   }
@@ -175,8 +211,12 @@ export class CommentValidationError extends CommentError {
 export class FileError extends FigmaCommentsError {
   fileKey: any;
 
-  constructor(message: string, fileKey: any = null, meta: Record<string, any> = {}) {
-    super(message, 'FILE_ERROR', { fileKey, ...meta });
+  constructor(
+    message: string,
+    fileKey: any = null,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "FILE_ERROR", { fileKey, ...meta });
     this.fileKey = fileKey;
   }
 }
@@ -196,15 +236,21 @@ export class FileAccessError extends FileError {
 /**
  * Utility function to create appropriate error from API response
  */
-export function createErrorFromResponse(response: any, requestMeta: Record<string, any> = {}): FigmaCommentsError {
+export function createErrorFromResponse(
+  response: any,
+  requestMeta: Record<string, any> = {},
+): FigmaCommentsError {
   const { status, statusText, data } = response;
 
   // Extract error message from response
-  let message = statusText || 'Unknown error';
+  let message = statusText || "Unknown error";
   if (data?.err) {
     message = data.err;
   } else if (data?.error) {
-    message = typeof data.error === 'string' ? data.error : data.error.message || message;
+    message =
+      typeof data.error === "string"
+        ? data.error
+        : data.error.message || message;
   } else if (data?.message) {
     message = data.message;
   }
@@ -219,10 +265,11 @@ export function createErrorFromResponse(response: any, requestMeta: Record<strin
     case 403:
       return new AuthorizationError(message, meta);
     case 404:
-      return new NotFoundError('Resource', null, meta);
-    case 429:
-      const retryAfter = response.headers?.['retry-after'];
+      return new NotFoundError("Resource", null, meta);
+    case 429: {
+      const retryAfter = response.headers?.["retry-after"];
       return new RateLimitError(retryAfter, meta);
+    }
     case 500:
     case 502:
     case 503:
@@ -249,5 +296,5 @@ export default {
   FileError,
   FileNotFoundError,
   FileAccessError,
-  createErrorFromResponse
+  createErrorFromResponse,
 };

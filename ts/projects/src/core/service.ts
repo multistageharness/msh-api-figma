@@ -3,11 +3,7 @@
  * Provides high-level methods with data transformation and validation
  */
 
-import {
-  ValidationError,
-  NotFoundError,
-  FigmaProjectsError
-} from './exceptions.js';
+import { NotFoundError, ValidationError } from "./exceptions.js";
 
 /**
  * Service layer for Figma Projects operations
@@ -24,9 +20,15 @@ export class FigmaProjectsService {
    * @param {object} [options.logger=console] - Logger instance
    * @param {object} [options.config={}] - Service configuration
    */
-  constructor({ fetcher, logger = console, config = {} }: { fetcher?: any; logger?: any; config?: Record<string, any> } = {}) {
+  constructor({
+    fetcher,
+    logger = console,
+    config = {},
+  }: { fetcher?: any; logger?: any; config?: Record<string, any> } = {}) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
 
     this.fetcher = fetcher;
@@ -35,10 +37,12 @@ export class FigmaProjectsService {
       maxConcurrentRequests: 5,
       defaultPageSize: 100,
       maxRetries: 3,
-      ...config
+      ...config,
     };
 
-    this.logger.debug('FigmaProjectsService initialized', { config: this.config });
+    this.logger.debug("FigmaProjectsService initialized", {
+      config: this.config,
+    });
   }
 
   /**
@@ -48,20 +52,29 @@ export class FigmaProjectsService {
    * @param {boolean} [options.includeStats=false] - Include project statistics
    * @returns {Promise<object>} Enhanced projects data
    */
-  async getTeamProjects(teamId: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async getTeamProjects(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     this._validateTeamId(teamId);
 
     try {
-      this.logger.debug('Fetching team projects', { teamId, options });
+      this.logger.debug("Fetching team projects", { teamId, options });
 
       // GET /v1/teams/:team_id/projects (generic verb, R1)
       const response = await this.fetcher.get(`/v1/teams/${teamId}/projects`);
 
-      if (!response || !response.projects) {
-        throw new ValidationError('Invalid response structure', 'response.projects', response);
+      if (!response?.projects) {
+        throw new ValidationError(
+          "Invalid response structure",
+          "response.projects",
+          response,
+        );
       }
 
-      const projects = response.projects.map((project: any) => this._enrichProjectData(project));
+      const projects = response.projects.map((project: any) =>
+        this._enrichProjectData(project),
+      );
 
       // Add statistics if requested
       if (options.includeStats) {
@@ -70,9 +83,9 @@ export class FigmaProjectsService {
             const stats = await this.getProjectStatistics(project.id);
             project.statistics = stats;
           } catch (error: any) {
-            this.logger.warn('Failed to fetch project statistics', {
+            this.logger.warn("Failed to fetch project statistics", {
               projectId: project.id,
-              error: error.message
+              error: error.message,
             });
             project.statistics = null;
           }
@@ -82,20 +95,19 @@ export class FigmaProjectsService {
       return {
         team: {
           id: teamId,
-          name: response.name
+          name: response.name,
         },
         projects,
         totalCount: projects.length,
         metadata: {
           fetchedAt: new Date().toISOString(),
-          includeStats: options.includeStats
-        }
+          includeStats: options.includeStats,
+        },
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to fetch team projects', {
+      this.logger.error("Failed to fetch team projects", {
         teamId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -109,48 +121,59 @@ export class FigmaProjectsService {
    * @param {boolean} [options.sortByModified=true] - Sort by last modified date
    * @returns {Promise<object>} Enhanced project files data
    */
-  async getProjectFiles(projectId: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async getProjectFiles(
+    projectId: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     this._validateProjectId(projectId);
 
     try {
-      this.logger.debug('Fetching project files', { projectId, options });
+      this.logger.debug("Fetching project files", { projectId, options });
 
       // GET /v1/projects/:project_id/files (generic verb, R1)
       const params: Record<string, any> = {};
       if (options.branchData) params.branch_data = options.branchData;
-      const response = await this.fetcher.get(`/v1/projects/${projectId}/files`, params);
+      const response = await this.fetcher.get(
+        `/v1/projects/${projectId}/files`,
+        params,
+      );
 
-      if (!response || !response.files) {
-        throw new ValidationError('Invalid response structure', 'response.files', response);
+      if (!response?.files) {
+        throw new ValidationError(
+          "Invalid response structure",
+          "response.files",
+          response,
+        );
       }
 
       let files = response.files.map((file: any) => this._enrichFileData(file));
 
       // Sort by modification date if requested
       if (options.sortByModified !== false) {
-        files = files.sort((a: any, b: any) =>
-          (new Date(b.lastModified) as any) - (new Date(a.lastModified) as any)
+        files = files.sort(
+          (a: any, b: any) =>
+            (new Date(b.lastModified) as any) -
+            (new Date(a.lastModified) as any),
         );
       }
 
       return {
         project: {
           id: projectId,
-          name: response.name
+          name: response.name,
         },
         files,
         totalCount: files.length,
         metadata: {
           fetchedAt: new Date().toISOString(),
           branchData: options.branchData,
-          sortByModified: options.sortByModified !== false
-        }
+          sortByModified: options.sortByModified !== false,
+        },
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to fetch project files', {
+      this.logger.error("Failed to fetch project files", {
         projectId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -164,14 +187,18 @@ export class FigmaProjectsService {
    * @param {boolean} [options.includeEmptyProjects=true] - Include projects with no files
    * @returns {Promise<object>} Projects with files
    */
-  async getProjectsWithFiles(teamId: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async getProjectsWithFiles(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     this._validateTeamId(teamId);
 
-    const maxConcurrency = options.maxConcurrency || this.config.maxConcurrentRequests;
+    const maxConcurrency =
+      options.maxConcurrency || this.config.maxConcurrentRequests;
     const includeEmptyProjects = options.includeEmptyProjects !== false;
 
     try {
-      this.logger.debug('Fetching projects with files', { teamId, options });
+      this.logger.debug("Fetching projects with files", { teamId, options });
 
       // Get all projects first
       const projectsResponse = await this.getTeamProjects(teamId);
@@ -186,22 +213,22 @@ export class FigmaProjectsService {
             return {
               ...project,
               files: filesResponse.files,
-              fileCount: filesResponse.totalCount
+              fileCount: filesResponse.totalCount,
             };
           } catch (error: any) {
-            this.logger.warn('Failed to fetch files for project', {
+            this.logger.warn("Failed to fetch files for project", {
               projectId: project.id,
-              error: error.message
+              error: error.message,
             });
             return {
               ...project,
               files: [],
               fileCount: 0,
-              error: error.message
+              error: error.message,
             };
           }
         },
-        maxConcurrency
+        maxConcurrency,
       );
 
       // Filter out empty projects if requested
@@ -213,18 +240,20 @@ export class FigmaProjectsService {
         team: projectsResponse.team,
         projects: filteredProjects,
         totalProjects: filteredProjects.length,
-        totalFiles: filteredProjects.reduce((sum: number, project: any) => sum + project.fileCount, 0),
+        totalFiles: filteredProjects.reduce(
+          (sum: number, project: any) => sum + project.fileCount,
+          0,
+        ),
         metadata: {
           fetchedAt: new Date().toISOString(),
           maxConcurrency,
-          includeEmptyProjects
-        }
+          includeEmptyProjects,
+        },
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to fetch projects with files', {
+      this.logger.error("Failed to fetch projects with files", {
         teamId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -239,46 +268,53 @@ export class FigmaProjectsService {
    * @param {boolean} [options.exactMatch=false] - Exact match only
    * @returns {Promise<object>} Search results
    */
-  async searchProjects(teamId: string, query: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async searchProjects(
+    teamId: string,
+    query: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     this._validateTeamId(teamId);
     this._validateSearchQuery(query);
 
     try {
-      this.logger.debug('Searching projects', { teamId, query, options });
+      this.logger.debug("Searching projects", { teamId, query, options });
 
       const projectsResponse = await this.getTeamProjects(teamId);
       const searchTerm = options.caseSensitive ? query : query.toLowerCase();
 
-      const matchingProjects = projectsResponse.projects.filter((project: any) => {
-        const projectName = options.caseSensitive ? project.name : project.name.toLowerCase();
+      const matchingProjects = projectsResponse.projects.filter(
+        (project: any) => {
+          const projectName = options.caseSensitive
+            ? project.name
+            : project.name.toLowerCase();
 
-        if (options.exactMatch) {
-          return projectName === searchTerm;
-        }
+          if (options.exactMatch) {
+            return projectName === searchTerm;
+          }
 
-        return projectName.includes(searchTerm);
-      });
+          return projectName.includes(searchTerm);
+        },
+      );
 
       return {
         team: projectsResponse.team,
         query: {
           term: query,
           caseSensitive: options.caseSensitive,
-          exactMatch: options.exactMatch
+          exactMatch: options.exactMatch,
         },
         results: matchingProjects,
         totalMatches: matchingProjects.length,
         totalProjects: projectsResponse.totalCount,
         metadata: {
-          searchedAt: new Date().toISOString()
-        }
+          searchedAt: new Date().toISOString(),
+        },
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to search projects', {
+      this.logger.error("Failed to search projects", {
         teamId,
         query,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -293,7 +329,7 @@ export class FigmaProjectsService {
     this._validateProjectId(projectId);
 
     try {
-      this.logger.debug('Calculating project statistics', { projectId });
+      this.logger.debug("Calculating project statistics", { projectId });
 
       const filesResponse = await this.getProjectFiles(projectId);
       const files = filesResponse.files;
@@ -311,14 +347,15 @@ export class FigmaProjectsService {
           activitySummary: {
             lastWeek: 0,
             lastMonth: 0,
-            lastYear: 0
-          }
+            lastYear: 0,
+          },
         };
       }
 
       // Calculate basic statistics
-      const sortedByDate = [...files].sort((a: any, b: any) =>
-        (new Date(a.lastModified) as any) - (new Date(b.lastModified) as any)
+      const sortedByDate = [...files].sort(
+        (a: any, b: any) =>
+          (new Date(a.lastModified) as any) - (new Date(b.lastModified) as any),
       );
 
       const now = new Date();
@@ -327,9 +364,15 @@ export class FigmaProjectsService {
       const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
       const activitySummary = {
-        lastWeek: files.filter((f: any) => new Date(f.lastModified) >= oneWeekAgo).length,
-        lastMonth: files.filter((f: any) => new Date(f.lastModified) >= oneMonthAgo).length,
-        lastYear: files.filter((f: any) => new Date(f.lastModified) >= oneYearAgo).length
+        lastWeek: files.filter(
+          (f: any) => new Date(f.lastModified) >= oneWeekAgo,
+        ).length,
+        lastMonth: files.filter(
+          (f: any) => new Date(f.lastModified) >= oneMonthAgo,
+        ).length,
+        lastYear: files.filter(
+          (f: any) => new Date(f.lastModified) >= oneYearAgo,
+        ).length,
       };
 
       return {
@@ -339,20 +382,19 @@ export class FigmaProjectsService {
         lastModified: sortedByDate[sortedByDate.length - 1].lastModified,
         oldestFile: {
           name: sortedByDate[0].name,
-          lastModified: sortedByDate[0].lastModified
+          lastModified: sortedByDate[0].lastModified,
         },
         newestFile: {
           name: sortedByDate[sortedByDate.length - 1].name,
-          lastModified: sortedByDate[sortedByDate.length - 1].lastModified
+          lastModified: sortedByDate[sortedByDate.length - 1].lastModified,
         },
         activitySummary,
-        calculatedAt: new Date().toISOString()
+        calculatedAt: new Date().toISOString(),
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to calculate project statistics', {
+      this.logger.error("Failed to calculate project statistics", {
         projectId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -365,17 +407,25 @@ export class FigmaProjectsService {
    * @param {number} [options.maxConcurrency=5] - Max concurrent requests
    * @returns {Promise<object[]>} Array of project data
    */
-  async batchGetProjects(projectIds: string[], options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async batchGetProjects(
+    projectIds: string[],
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     if (!Array.isArray(projectIds) || projectIds.length === 0) {
-      throw new ValidationError('Project IDs must be a non-empty array', 'projectIds', projectIds);
+      throw new ValidationError(
+        "Project IDs must be a non-empty array",
+        "projectIds",
+        projectIds,
+      );
     }
 
-    const maxConcurrency = options.maxConcurrency || this.config.maxConcurrentRequests;
+    const maxConcurrency =
+      options.maxConcurrency || this.config.maxConcurrentRequests;
 
     try {
-      this.logger.debug('Batch fetching projects', {
+      this.logger.debug("Batch fetching projects", {
         projectCount: projectIds.length,
-        maxConcurrency
+        maxConcurrency,
       });
 
       const results = await this._processConcurrently(
@@ -384,18 +434,18 @@ export class FigmaProjectsService {
           try {
             return await this.getProjectFiles(projectId);
           } catch (error: any) {
-            this.logger.warn('Failed to fetch project in batch', {
+            this.logger.warn("Failed to fetch project in batch", {
               projectId,
-              error: error.message
+              error: error.message,
             });
             return {
               projectId,
               error: error.message,
-              success: false
+              success: false,
             };
           }
         },
-        maxConcurrency
+        maxConcurrency,
       );
 
       const successful = results.filter((result: any) => !result.error);
@@ -407,18 +457,17 @@ export class FigmaProjectsService {
           total: projectIds.length,
           successful: successful.length,
           failed: failed.length,
-          successRate: successful.length / projectIds.length
+          successRate: successful.length / projectIds.length,
         },
         metadata: {
           fetchedAt: new Date().toISOString(),
-          maxConcurrency
-        }
+          maxConcurrency,
+        },
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to batch fetch projects', {
+      this.logger.error("Failed to batch fetch projects", {
         projectIds,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -433,18 +482,30 @@ export class FigmaProjectsService {
    * @param {boolean} [options.exactMatch=true] - Exact match only
    * @returns {Promise<object|null>} File data or null if not found
    */
-  async findFileByName(projectId: string, fileName: string, options: Record<string, any> = {}): Promise<Record<string, any> | null> {
+  async findFileByName(
+    projectId: string,
+    fileName: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any> | null> {
     this._validateProjectId(projectId);
     this._validateFileName(fileName);
 
     try {
-      this.logger.debug('Finding file by name', { projectId, fileName, options });
+      this.logger.debug("Finding file by name", {
+        projectId,
+        fileName,
+        options,
+      });
 
       const filesResponse = await this.getProjectFiles(projectId);
-      const searchTerm = options.caseSensitive ? fileName : fileName.toLowerCase();
+      const searchTerm = options.caseSensitive
+        ? fileName
+        : fileName.toLowerCase();
 
       const matchingFile = filesResponse.files.find((file: any) => {
-        const fileNameToSearch = options.caseSensitive ? file.name : file.name.toLowerCase();
+        const fileNameToSearch = options.caseSensitive
+          ? file.name
+          : file.name.toLowerCase();
 
         if (options.exactMatch !== false) {
           return fileNameToSearch === searchTerm;
@@ -454,7 +515,7 @@ export class FigmaProjectsService {
       });
 
       if (!matchingFile) {
-        throw new NotFoundError('File', fileName, { projectId });
+        throw new NotFoundError("File", fileName, { projectId });
       }
 
       return {
@@ -463,15 +524,14 @@ export class FigmaProjectsService {
         searchCriteria: {
           fileName,
           caseSensitive: options.caseSensitive,
-          exactMatch: options.exactMatch !== false
-        }
+          exactMatch: options.exactMatch !== false,
+        },
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to find file by name', {
+      this.logger.error("Failed to find file by name", {
         projectId,
         fileName,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -484,11 +544,15 @@ export class FigmaProjectsService {
    * @param {number} [daysBack=7] - Number of days to look back
    * @returns {Promise<object>} Recent files data
    */
-  async getRecentFiles(teamId: string, limit: number = 10, daysBack: number = 7): Promise<Record<string, any>> {
+  async getRecentFiles(
+    teamId: string,
+    limit: number = 10,
+    daysBack: number = 7,
+  ): Promise<Record<string, any>> {
     this._validateTeamId(teamId);
 
     try {
-      this.logger.debug('Fetching recent files', { teamId, limit, daysBack });
+      this.logger.debug("Fetching recent files", { teamId, limit, daysBack });
 
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysBack);
@@ -500,14 +564,18 @@ export class FigmaProjectsService {
         project.files.map((file: any) => ({
           ...file,
           projectId: project.id,
-          projectName: project.name
-        }))
+          projectName: project.name,
+        })),
       );
 
       // Filter by date and sort by modification time
       const recentFiles = allFiles
         .filter((file: any) => new Date(file.lastModified) >= cutoffDate)
-        .sort((a: any, b: any) => (new Date(b.lastModified) as any) - (new Date(a.lastModified) as any))
+        .sort(
+          (a: any, b: any) =>
+            (new Date(b.lastModified) as any) -
+            (new Date(a.lastModified) as any),
+        )
         .slice(0, limit);
 
       return {
@@ -516,22 +584,21 @@ export class FigmaProjectsService {
         criteria: {
           limit,
           daysBack,
-          cutoffDate: cutoffDate.toISOString()
+          cutoffDate: cutoffDate.toISOString(),
         },
         totalFound: recentFiles.length,
         metadata: {
           fetchedAt: new Date().toISOString(),
           totalProjectsScanned: projectsWithFiles.totalProjects,
-          totalFilesScanned: projectsWithFiles.totalFiles
-        }
+          totalFilesScanned: projectsWithFiles.totalFiles,
+        },
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to fetch recent files', {
+      this.logger.error("Failed to fetch recent files", {
         teamId,
         limit,
         daysBack,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -543,19 +610,22 @@ export class FigmaProjectsService {
    * @param {string} [format='json'] - Export format (json, csv)
    * @returns {Promise<string>} Exported data
    */
-  async exportProjectStructure(teamId: string, format: string = 'json'): Promise<string> {
+  async exportProjectStructure(
+    teamId: string,
+    format: string = "json",
+  ): Promise<string> {
     this._validateTeamId(teamId);
 
-    if (!['json', 'csv'].includes(format)) {
-      throw new ValidationError('Format must be json or csv', 'format', format);
+    if (!["json", "csv"].includes(format)) {
+      throw new ValidationError("Format must be json or csv", "format", format);
     }
 
     try {
-      this.logger.debug('Exporting project structure', { teamId, format });
+      this.logger.debug("Exporting project structure", { teamId, format });
 
       const projectsWithFiles = await this.getProjectsWithFiles(teamId);
 
-      if (format === 'json') {
+      if (format === "json") {
         return JSON.stringify(projectsWithFiles, null, 2);
       }
 
@@ -564,13 +634,13 @@ export class FigmaProjectsService {
 
       // Header
       rows.push([
-        'Team Name',
-        'Project ID',
-        'Project Name',
-        'File Key',
-        'File Name',
-        'Last Modified',
-        'Thumbnail URL'
+        "Team Name",
+        "Project ID",
+        "Project Name",
+        "File Key",
+        "File Name",
+        "Last Modified",
+        "Thumbnail URL",
       ]);
 
       // Data rows
@@ -583,20 +653,21 @@ export class FigmaProjectsService {
             file.key,
             file.name,
             file.lastModified,
-            file.thumbnailUrl || ''
+            file.thumbnailUrl || "",
           ]);
         }
       }
 
-      return rows.map(row =>
-        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-      ).join('\n');
-
+      return rows
+        .map((row) =>
+          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+        )
+        .join("\n");
     } catch (error: any) {
-      this.logger.error('Failed to export project structure', {
+      this.logger.error("Failed to export project structure", {
         teamId,
         format,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -612,8 +683,8 @@ export class FigmaProjectsService {
       enriched: {
         createdAt: project.created_at || null,
         updatedAt: project.updated_at || null,
-        slug: this._createSlug(project.name)
-      }
+        slug: this._createSlug(project.name),
+      },
     };
   }
 
@@ -624,7 +695,9 @@ export class FigmaProjectsService {
   _enrichFileData(file: any): Record<string, any> {
     const lastModified = new Date(file.last_modified);
     const now = new Date();
-    const daysSinceModified = Math.floor(((now as any) - (lastModified as any)) / (1000 * 60 * 60 * 24));
+    const daysSinceModified = Math.floor(
+      ((now as any) - (lastModified as any)) / (1000 * 60 * 60 * 24),
+    );
 
     return {
       ...file,
@@ -634,8 +707,8 @@ export class FigmaProjectsService {
         daysSinceModified,
         isRecent: daysSinceModified <= 7,
         slug: this._createSlug(file.name),
-        extension: this._getFileExtension(file.name)
-      }
+        extension: this._getFileExtension(file.name),
+      },
     };
   }
 
@@ -643,7 +716,11 @@ export class FigmaProjectsService {
    * Process items concurrently with limit
    * @private
    */
-  async _processConcurrently(items: any[], processor: (item: any) => Promise<any>, maxConcurrency: number): Promise<any[]> {
+  async _processConcurrently(
+    items: any[],
+    processor: (item: any) => Promise<any>,
+    maxConcurrency: number,
+  ): Promise<any[]> {
     const results: any[] = [];
 
     for (let i = 0; i < items.length; i += maxConcurrency) {
@@ -663,8 +740,8 @@ export class FigmaProjectsService {
   _createSlug(text: string): string {
     return text
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   /**
@@ -672,8 +749,8 @@ export class FigmaProjectsService {
    * @private
    */
   _getFileExtension(filename: string): string {
-    const lastDot = filename.lastIndexOf('.');
-    return lastDot > 0 ? filename.substring(lastDot + 1).toLowerCase() : '';
+    const lastDot = filename.lastIndexOf(".");
+    return lastDot > 0 ? filename.substring(lastDot + 1).toLowerCase() : "";
   }
 
   /**
@@ -681,26 +758,50 @@ export class FigmaProjectsService {
    * @private
    */
   _validateTeamId(teamId: any): void {
-    if (!teamId || typeof teamId !== 'string' || teamId.trim().length === 0) {
-      throw new ValidationError('Team ID is required and must be a non-empty string', 'teamId', teamId);
+    if (!teamId || typeof teamId !== "string" || teamId.trim().length === 0) {
+      throw new ValidationError(
+        "Team ID is required and must be a non-empty string",
+        "teamId",
+        teamId,
+      );
     }
   }
 
   _validateProjectId(projectId: any): void {
-    if (!projectId || typeof projectId !== 'string' || projectId.trim().length === 0) {
-      throw new ValidationError('Project ID is required and must be a non-empty string', 'projectId', projectId);
+    if (
+      !projectId ||
+      typeof projectId !== "string" ||
+      projectId.trim().length === 0
+    ) {
+      throw new ValidationError(
+        "Project ID is required and must be a non-empty string",
+        "projectId",
+        projectId,
+      );
     }
   }
 
   _validateSearchQuery(query: any): void {
-    if (!query || typeof query !== 'string' || query.trim().length === 0) {
-      throw new ValidationError('Search query is required and must be a non-empty string', 'query', query);
+    if (!query || typeof query !== "string" || query.trim().length === 0) {
+      throw new ValidationError(
+        "Search query is required and must be a non-empty string",
+        "query",
+        query,
+      );
     }
   }
 
   _validateFileName(fileName: any): void {
-    if (!fileName || typeof fileName !== 'string' || fileName.trim().length === 0) {
-      throw new ValidationError('File name is required and must be a non-empty string', 'fileName', fileName);
+    if (
+      !fileName ||
+      typeof fileName !== "string" ||
+      fileName.trim().length === 0
+    ) {
+      throw new ValidationError(
+        "File name is required and must be a non-empty string",
+        "fileName",
+        fileName,
+      );
     }
   }
 }

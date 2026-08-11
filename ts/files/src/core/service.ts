@@ -4,7 +4,7 @@
  * Provides high-level methods that compose HTTP client operations
  */
 
-import { ValidationError, NodeNotFoundError } from './exceptions.js';
+import { NodeNotFoundError, ValidationError } from "./exceptions.js";
 
 /**
  * Service class for Figma Files API operations
@@ -19,9 +19,14 @@ export class FigmaFilesService {
    * @param {Object} options.fetcher - FigmaApiClient instance (required)
    * @param {Object} [options.logger=console] - Logger instance
    */
-  constructor({ fetcher, logger = console }: { fetcher?: any; logger?: any } = {}) {
+  constructor({
+    fetcher,
+    logger = console,
+  }: { fetcher?: any; logger?: any } = {}) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
     this.fetcher = fetcher;
     this.logger = logger;
@@ -32,13 +37,17 @@ export class FigmaFilesService {
    * @private
    */
   _validateFileKey(fileKey: any): void {
-    if (!fileKey || typeof fileKey !== 'string') {
-      throw new ValidationError('File key is required and must be a string', 'fileKey', fileKey);
+    if (!fileKey || typeof fileKey !== "string") {
+      throw new ValidationError(
+        "File key is required and must be a string",
+        "fileKey",
+        fileKey,
+      );
     }
 
     // Figma file keys are typically alphanumeric with some special characters
     if (!/^[a-zA-Z0-9\-_]+$/.test(fileKey)) {
-      throw new ValidationError('Invalid file key format', 'fileKey', fileKey);
+      throw new ValidationError("Invalid file key format", "fileKey", fileKey);
     }
   }
 
@@ -48,22 +57,26 @@ export class FigmaFilesService {
    */
   _validateNodeIds(nodeIds: any): string[] {
     if (!nodeIds) {
-      throw new ValidationError('Node IDs are required', 'nodeIds', nodeIds);
+      throw new ValidationError("Node IDs are required", "nodeIds", nodeIds);
     }
 
-    const ids = Array.isArray(nodeIds) ? nodeIds : nodeIds.split(',');
+    const ids = Array.isArray(nodeIds) ? nodeIds : nodeIds.split(",");
 
     if (ids.length === 0) {
-      throw new ValidationError('At least one node ID is required', 'nodeIds', nodeIds);
+      throw new ValidationError(
+        "At least one node ID is required",
+        "nodeIds",
+        nodeIds,
+      );
     }
 
     // Validate each node ID format (typically contains colons and numbers)
     const invalidIds = ids.filter((id: string) => !/^[\d:]+$/.test(id.trim()));
     if (invalidIds.length > 0) {
       throw new ValidationError(
-        `Invalid node ID format: ${invalidIds.join(', ')}`,
-        'nodeIds',
-        invalidIds
+        `Invalid node ID format: ${invalidIds.join(", ")}`,
+        "nodeIds",
+        invalidIds,
       );
     }
 
@@ -77,11 +90,11 @@ export class FigmaFilesService {
   _validateScale(scale: any): void {
     if (scale !== undefined && scale !== null) {
       const numScale = Number(scale);
-      if (isNaN(numScale) || numScale < 0.01 || numScale > 4) {
+      if (Number.isNaN(numScale) || numScale < 0.01 || numScale > 4) {
         throw new ValidationError(
-          'Scale must be a number between 0.01 and 4',
-          'scale',
-          scale
+          "Scale must be a number between 0.01 and 4",
+          "scale",
+          scale,
         );
       }
     }
@@ -93,12 +106,12 @@ export class FigmaFilesService {
    */
   _validateImageFormat(format: any): void {
     if (format !== undefined && format !== null) {
-      const validFormats = ['jpg', 'png', 'svg', 'pdf'];
+      const validFormats = ["jpg", "png", "svg", "pdf"];
       if (!validFormats.includes(format)) {
         throw new ValidationError(
-          `Format must be one of: ${validFormats.join(', ')}`,
-          'format',
-          format
+          `Format must be one of: ${validFormats.join(", ")}`,
+          "format",
+          format,
         );
       }
     }
@@ -118,7 +131,10 @@ export class FigmaFilesService {
    * @param {boolean} [options.branchData=false] - Return branch metadata
    * @returns {Promise<Object>} File JSON data
    */
-  async getFile(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getFile(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateFileKey(fileKey);
 
     const params: Record<string, any> = {};
@@ -148,12 +164,16 @@ export class FigmaFilesService {
    * @param {string} [options.pluginData] - Plugin IDs to include data for
    * @returns {Promise<Object>} Node JSON data
    */
-  async getFileNodes(fileKey: string, nodeIds: string | string[], options: Record<string, any> = {}): Promise<any> {
+  async getFileNodes(
+    fileKey: string,
+    nodeIds: string | string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateFileKey(fileKey);
     const validatedNodeIds = this._validateNodeIds(nodeIds);
 
     const params: Record<string, any> = {
-      ids: validatedNodeIds.join(',')
+      ids: validatedNodeIds.join(","),
     };
 
     if (options.version) params.version = options.version;
@@ -163,7 +183,10 @@ export class FigmaFilesService {
 
     this.logger.debug(`Getting file nodes: ${fileKey}`, params);
 
-    const response = await this.fetcher.get(`/v1/files/${fileKey}/nodes`, params);
+    const response = await this.fetcher.get(
+      `/v1/files/${fileKey}/nodes`,
+      params,
+    );
 
     // Check for null nodes in response (indicates nodes don't exist)
     if (response.nodes) {
@@ -197,25 +220,35 @@ export class FigmaFilesService {
    * @param {boolean} [options.useAbsoluteBounds=false] - Use full node dimensions
    * @returns {Promise<Object>} Image URLs mapped by node ID
    */
-  async renderImages(fileKey: string, nodeIds: string | string[], options: Record<string, any> = {}): Promise<any> {
+  async renderImages(
+    fileKey: string,
+    nodeIds: string | string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateFileKey(fileKey);
     const validatedNodeIds = this._validateNodeIds(nodeIds);
     this._validateScale(options.scale);
     this._validateImageFormat(options.format);
 
     const params: Record<string, any> = {
-      ids: validatedNodeIds.join(',')
+      ids: validatedNodeIds.join(","),
     };
 
     if (options.version) params.version = options.version;
     if (options.scale !== undefined) params.scale = options.scale;
     if (options.format) params.format = options.format;
-    if (options.svgOutlineText !== undefined) params.svg_outline_text = options.svgOutlineText;
-    if (options.svgIncludeId !== undefined) params.svg_include_id = options.svgIncludeId;
-    if (options.svgIncludeNodeId !== undefined) params.svg_include_node_id = options.svgIncludeNodeId;
-    if (options.svgSimplifyStroke !== undefined) params.svg_simplify_stroke = options.svgSimplifyStroke;
-    if (options.contentsOnly !== undefined) params.contents_only = options.contentsOnly;
-    if (options.useAbsoluteBounds !== undefined) params.use_absolute_bounds = options.useAbsoluteBounds;
+    if (options.svgOutlineText !== undefined)
+      params.svg_outline_text = options.svgOutlineText;
+    if (options.svgIncludeId !== undefined)
+      params.svg_include_id = options.svgIncludeId;
+    if (options.svgIncludeNodeId !== undefined)
+      params.svg_include_node_id = options.svgIncludeNodeId;
+    if (options.svgSimplifyStroke !== undefined)
+      params.svg_simplify_stroke = options.svgSimplifyStroke;
+    if (options.contentsOnly !== undefined)
+      params.contents_only = options.contentsOnly;
+    if (options.useAbsoluteBounds !== undefined)
+      params.use_absolute_bounds = options.useAbsoluteBounds;
 
     this.logger.debug(`Rendering images for file: ${fileKey}`, params);
 
@@ -228,7 +261,9 @@ export class FigmaFilesService {
         .map(([id, _]) => id);
 
       if (failedNodes.length > 0) {
-        this.logger.warn(`Failed to render images for nodes: ${failedNodes.join(', ')}`);
+        this.logger.warn(
+          `Failed to render images for nodes: ${failedNodes.join(", ")}`,
+        );
       }
     }
 
@@ -276,14 +311,21 @@ export class FigmaFilesService {
    * @param {number} [options.after] - Get versions after this ID
    * @returns {Promise<Object>} File version history
    */
-  async getFileVersions(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getFileVersions(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateFileKey(fileKey);
 
     const params: Record<string, any> = {};
 
     if (options.pageSize !== undefined) {
       if (options.pageSize > 50) {
-        throw new ValidationError('Page size cannot exceed 50', 'pageSize', options.pageSize);
+        throw new ValidationError(
+          "Page size cannot exceed 50",
+          "pageSize",
+          options.pageSize,
+        );
       }
       params.page_size = options.pageSize;
     }
@@ -304,27 +346,36 @@ export class FigmaFilesService {
    * @param {Object} [options={}] - Request options (same as getFile)
    * @returns {Promise<Object[]>} Array of file data
    */
-  async batchGetFiles(fileKeys: string[], options: Record<string, any> = {}): Promise<any> {
+  async batchGetFiles(
+    fileKeys: string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     if (!Array.isArray(fileKeys) || fileKeys.length === 0) {
-      throw new ValidationError('File keys must be a non-empty array', 'fileKeys', fileKeys);
+      throw new ValidationError(
+        "File keys must be a non-empty array",
+        "fileKeys",
+        fileKeys,
+      );
     }
 
     this.logger.debug(`Batch getting ${fileKeys.length} files`);
 
-    const promises = fileKeys.map(fileKey =>
+    const promises = fileKeys.map((fileKey) =>
       this.getFile(fileKey, options)
-        .then(data => ({ success: true, fileKey, data }))
-        .catch(error => ({
+        .then((data) => ({ success: true, fileKey, data }))
+        .catch((error) => ({
           success: false,
           fileKey,
-          error: error.message
-        }))
+          error: error.message,
+        })),
     );
 
     const results = await Promise.all(promises);
 
     // Separate successful and failed results
-    const successful = results.filter((result: any) => result.success === true).map((r: any) => r.data);
+    const successful = results
+      .filter((result: any) => result.success === true)
+      .map((r: any) => r.data);
     const failed = results.filter((result: any) => result.success === false);
 
     if (failed.length > 0) {
@@ -334,7 +385,7 @@ export class FigmaFilesService {
     return {
       successful,
       failed,
-      total: fileKeys.length
+      total: fileKeys.length,
     };
   }
 

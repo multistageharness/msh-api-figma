@@ -3,9 +3,13 @@
  * Uses undici's fetch with support for proxy configuration
  */
 
-import { FetchAdapter } from '../core/FetchAdapter.js';
-import { FetchRequest, FetchResponse, ProxyConfig } from '../types/index.js';
-import { NetworkError, TimeoutError } from '../errors/index.js';
+import { FetchAdapter } from "../core/FetchAdapter.js";
+import { NetworkError, TimeoutError } from "../errors/index.js";
+import type {
+  FetchRequest,
+  FetchResponse,
+  ProxyConfig,
+} from "../types/index.js";
 
 // Undici imports (will be dynamically imported to make it optional)
 let undici: any = null;
@@ -40,7 +44,7 @@ export class UndiciFetchAdapter extends FetchAdapter {
     try {
       // Dynamically import undici
       if (!undici) {
-        undici = await import('undici');
+        undici = await import("undici");
         ProxyAgent = undici.ProxyAgent;
       }
 
@@ -54,7 +58,7 @@ export class UndiciFetchAdapter extends FetchAdapter {
         this.proxyAgent = new ProxyAgent(this.proxyConfig.url);
       }
     } catch (error) {
-      console.error('Failed to initialize undici proxy:', error);
+      console.error("Failed to initialize undici proxy:", error);
       this.proxyAgent = null;
     }
   }
@@ -65,17 +69,23 @@ export class UndiciFetchAdapter extends FetchAdapter {
   async fetch<T = any>(request: FetchRequest): Promise<FetchResponse<T>> {
     // Ensure undici is loaded
     if (!undici) {
-      undici = await import('undici');
+      undici = await import("undici");
     }
 
     const transformedRequest = this.transformRequest(request);
-    const { url, method = 'GET', headers, body, signal, timeout } = transformedRequest;
+    const {
+      url,
+      method = "GET",
+      headers,
+      body,
+      signal,
+      timeout,
+    } = transformedRequest;
 
     try {
       // Create timeout signal if timeout is specified
-      const finalSignal = timeout && !signal
-        ? this.createTimeoutSignal(timeout)
-        : signal;
+      const finalSignal =
+        timeout && !signal ? this.createTimeoutSignal(timeout) : signal;
 
       // Prepare fetch options
       const fetchOptions: any = {
@@ -94,7 +104,7 @@ export class UndiciFetchAdapter extends FetchAdapter {
       const response = await undici.fetch(url, fetchOptions);
 
       // Parse response
-      const contentType = response.headers.get('content-type');
+      const contentType = response.headers.get("content-type");
       const data = await this.parseResponseData(response, contentType);
 
       // Create FetchResponse
@@ -107,22 +117,24 @@ export class UndiciFetchAdapter extends FetchAdapter {
       };
 
       return this.transformResponse(fetchResponse);
-
     } catch (error: any) {
       // Handle timeout
-      if (error.name === 'AbortError' || error.code === 'UND_ERR_CONNECT_TIMEOUT') {
+      if (
+        error.name === "AbortError" ||
+        error.code === "UND_ERR_CONNECT_TIMEOUT"
+      ) {
         throw new TimeoutError(timeout || 30000);
       }
 
       // Handle network errors
       if (
-        error.name === 'TypeError' ||
-        error.code === 'ECONNREFUSED' ||
-        error.code === 'ENOTFOUND' ||
-        error.code === 'ETIMEDOUT' ||
-        (error.message && error.message.includes('fetch'))
+        error.name === "TypeError" ||
+        error.code === "ECONNREFUSED" ||
+        error.code === "ENOTFOUND" ||
+        error.code === "ETIMEDOUT" ||
+        error.message?.includes("fetch")
       ) {
-        throw new NetworkError('Network request failed', error);
+        throw new NetworkError("Network request failed", error);
       }
 
       // Re-throw other errors

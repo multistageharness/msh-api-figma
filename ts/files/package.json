@@ -46,7 +46,10 @@
     "fix:imports": "find dist -name '*.mjs' -type f -exec sed -i '' \"s/from '\\(.*\\)\\.js'/from '\\1.mjs'/g\" {} \\; && find dist -name '*.mjs' -type f -exec sed -i '' 's/from \"\\(.*\\)\\.js\"/from \"\\1.mjs\"/g' {} \\;",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --experimental-vm-modules ../node_modules/.bin/jest",
-    "lint": "eslint src --ext .ts",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check .",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -83,12 +86,8 @@
     "@figma-api/fetch": "file:../figma-fetch",
     "@jest/globals": "^29.7.0",
     "@types/node": "^20.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.57.0",
     "fastify": "^5.6.1",
     "jest": "^29.7.0",
-    "prettier": "^3.2.5",
     "typescript": "^5.0.0"
   },
   "repository": {

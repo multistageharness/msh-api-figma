@@ -3,7 +3,7 @@
  * Provides ergonomic API for library analytics operations
  */
 
-import FigmaLibraryAnalyticsService from './service.js';
+import FigmaLibraryAnalyticsService from "./service.js";
 
 /**
  * High-level SDK for Figma Library Analytics API
@@ -28,12 +28,14 @@ export class FigmaLibraryAnalyticsSDK {
    */
   constructor({ fetcher, logger = console }: any = {}) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
 
     this.service = new FigmaLibraryAnalyticsService({
       fetcher,
-      logger
+      logger,
     });
     this.logger = logger;
   }
@@ -50,7 +52,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.cursor] - Pagination cursor
    * @returns {Promise<Object>} - Component actions analytics data
    */
-  async getComponentActions(fileKey: string, options?: Record<string, any>): Promise<any> {
+  async getComponentActions(
+    fileKey: string,
+    options?: Record<string, any>,
+  ): Promise<any> {
     return this.service.getComponentActions(fileKey, options);
   }
 
@@ -62,7 +67,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.cursor] - Pagination cursor
    * @returns {Promise<Object>} - Component usage analytics data
    */
-  async getComponentUsages(fileKey: string, options?: Record<string, any>): Promise<any> {
+  async getComponentUsages(
+    fileKey: string,
+    options?: Record<string, any>,
+  ): Promise<any> {
     return this.service.getComponentUsages(fileKey, options);
   }
 
@@ -76,7 +84,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.cursor] - Pagination cursor
    * @returns {Promise<Object>} - Style actions analytics data
    */
-  async getStyleActions(fileKey: string, options?: Record<string, any>): Promise<any> {
+  async getStyleActions(
+    fileKey: string,
+    options?: Record<string, any>,
+  ): Promise<any> {
     return this.service.getStyleActions(fileKey, options);
   }
 
@@ -88,7 +99,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.cursor] - Pagination cursor
    * @returns {Promise<Object>} - Style usage analytics data
    */
-  async getStyleUsages(fileKey: string, options?: Record<string, any>): Promise<any> {
+  async getStyleUsages(
+    fileKey: string,
+    options?: Record<string, any>,
+  ): Promise<any> {
     return this.service.getStyleUsages(fileKey, options);
   }
 
@@ -102,7 +116,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.cursor] - Pagination cursor
    * @returns {Promise<Object>} - Variable actions analytics data
    */
-  async getVariableActions(fileKey: string, options?: Record<string, any>): Promise<any> {
+  async getVariableActions(
+    fileKey: string,
+    options?: Record<string, any>,
+  ): Promise<any> {
     return this.service.getVariableActions(fileKey, options);
   }
 
@@ -114,7 +131,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.cursor] - Pagination cursor
    * @returns {Promise<Object>} - Variable usage analytics data
    */
-  async getVariableUsages(fileKey: string, options?: Record<string, any>): Promise<any> {
+  async getVariableUsages(
+    fileKey: string,
+    options?: Record<string, any>,
+  ): Promise<any> {
     return this.service.getVariableUsages(fileKey, options);
   }
 
@@ -128,7 +148,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {boolean} [options.includeUsage=true] - Include usage data
    * @returns {Promise<Object>} - Component adoption analytics
    */
-  async getComponentAdoption(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getComponentAdoption(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getComponentAdoption(fileKey, options);
   }
 
@@ -140,7 +163,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.sortBy='total_usage'] - Sort criteria
    * @returns {Promise<Array>} - Top performing components
    */
-  async getComponentLeaderboard(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getComponentLeaderboard(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getComponentLeaderboard(fileKey, options);
   }
 
@@ -151,7 +177,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.period='lastMonth'] - Time period
    * @returns {Promise<Object>} - Team engagement metrics
    */
-  async getComponentTeamEngagement(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getComponentTeamEngagement(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getComponentTeamEngagement(fileKey, options);
   }
 
@@ -163,7 +192,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {boolean} [options.includeUsage=true] - Include usage data
    * @returns {Promise<Object>} - Style adoption analytics
    */
-  async getStyleAdoption(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getStyleAdoption(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getStyleAdoption(fileKey, options);
   }
 
@@ -175,7 +207,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.sortBy='total_usage'] - Sort criteria
    * @returns {Promise<Array>} - Top performing styles
    */
-  async getStyleLeaderboard(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getStyleLeaderboard(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getStyleLeaderboard(fileKey, options);
   }
 
@@ -187,7 +222,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {boolean} [options.includeUsage=true] - Include usage data
    * @returns {Promise<Object>} - Variable adoption analytics
    */
-  async getVariableAdoption(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getVariableAdoption(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getVariableAdoption(fileKey, options);
   }
 
@@ -198,7 +236,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.period='lastMonth'] - Time period
    * @returns {Promise<Object>} - Complete library health metrics
    */
-  async getLibraryHealthReport(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getLibraryHealthReport(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getLibraryHealthReport(fileKey, options);
   }
 
@@ -209,7 +250,10 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {Array<string>} [options.periods=['lastWeek', 'lastMonth']] - Time periods to compare
    * @returns {Promise<Object>} - Adoption trends
    */
-  async getLibraryTrends(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getLibraryTrends(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getLibraryTrends(fileKey, options);
   }
 
@@ -223,34 +267,41 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {boolean} [options.includeHealthReports=true] - Include health reports
    * @returns {Promise<Object>} - Multi-library analytics
    */
-  async getMultiLibraryAnalytics(fileKeys: string[], options: Record<string, any> = {}): Promise<any> {
-    const { period = 'lastMonth', includeHealthReports = true } = options;
+  async getMultiLibraryAnalytics(
+    fileKeys: string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
+    const { period = "lastMonth", includeHealthReports = true } = options;
     const results: any = {
       libraries: {},
       summary: {
         totalLibraries: fileKeys.length,
         successfulReports: 0,
-        errors: []
-      }
+        errors: [],
+      },
     };
 
     for (const fileKey of fileKeys) {
       try {
         if (includeHealthReports) {
-          results.libraries[fileKey] = await this.getLibraryHealthReport(fileKey, { period });
+          results.libraries[fileKey] = await this.getLibraryHealthReport(
+            fileKey,
+            { period },
+          );
         } else {
-          const [componentMetrics, styleMetrics, variableMetrics] = await Promise.all([
-            this.getComponentAdoption(fileKey, { period }),
-            this.getStyleAdoption(fileKey, { period }),
-            this.getVariableAdoption(fileKey, { period })
-          ]);
+          const [componentMetrics, styleMetrics, variableMetrics] =
+            await Promise.all([
+              this.getComponentAdoption(fileKey, { period }),
+              this.getStyleAdoption(fileKey, { period }),
+              this.getVariableAdoption(fileKey, { period }),
+            ]);
 
           results.libraries[fileKey] = {
             fileKey,
             period,
             components: componentMetrics,
             styles: styleMetrics,
-            variables: variableMetrics
+            variables: variableMetrics,
           };
         }
 
@@ -259,9 +310,12 @@ export class FigmaLibraryAnalyticsSDK {
         results.summary.errors.push({
           fileKey,
           error: error.message,
-          code: error.code
+          code: error.code,
         });
-        this.logger.error(`Failed to get analytics for library ${fileKey}:`, error);
+        this.logger.error(
+          `Failed to get analytics for library ${fileKey}:`,
+          error,
+        );
       }
     }
 
@@ -276,12 +330,15 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {string} [options.metric='adoptionRate'] - Metric to compare
    * @returns {Promise<Object>} - Library comparison
    */
-  async compareLibraries(fileKeys: string[], options: Record<string, any> = {}): Promise<any> {
-    const { period = 'lastMonth', metric = 'adoptionRate' } = options;
+  async compareLibraries(
+    fileKeys: string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
+    const { period = "lastMonth", metric = "adoptionRate" } = options;
 
     const multiLibraryData = await this.getMultiLibraryAnalytics(fileKeys, {
       period,
-      includeHealthReports: true
+      includeHealthReports: true,
     });
 
     const comparison: any = {
@@ -291,32 +348,34 @@ export class FigmaLibraryAnalyticsSDK {
       rankings: {
         best: null,
         worst: null,
-        average: 0
-      }
+        average: 0,
+      },
     };
 
     const libraryScores: number[] = [];
 
-    Object.entries(multiLibraryData.libraries).forEach(([fileKey, data]: [string, any]) => {
-      let score = 0;
+    Object.entries(multiLibraryData.libraries).forEach(
+      ([fileKey, data]: [string, any]) => {
+        let score = 0;
 
-      if (metric === 'adoptionRate' && data.summary) {
-        score = data.summary.adoptionRate;
-      } else if (metric === 'healthScore' && data.summary) {
-        score = data.summary.healthScore;
-      } else if (metric === 'totalUsages' && data.summary) {
-        score = data.summary.totalUsages;
-      }
+        if (metric === "adoptionRate" && data.summary) {
+          score = data.summary.adoptionRate;
+        } else if (metric === "healthScore" && data.summary) {
+          score = data.summary.healthScore;
+        } else if (metric === "totalUsages" && data.summary) {
+          score = data.summary.totalUsages;
+        }
 
-      const libraryData = {
-        fileKey,
-        score,
-        data
-      };
+        const libraryData = {
+          fileKey,
+          score,
+          data,
+        };
 
-      comparison.libraries.push(libraryData);
-      libraryScores.push(score);
-    });
+        comparison.libraries.push(libraryData);
+        libraryScores.push(score);
+      },
+    );
 
     // Sort by score (descending)
     comparison.libraries.sort((a: any, b: any) => b.score - a.score);
@@ -324,8 +383,10 @@ export class FigmaLibraryAnalyticsSDK {
     // Calculate rankings
     if (comparison.libraries.length > 0) {
       comparison.rankings.best = comparison.libraries[0];
-      comparison.rankings.worst = comparison.libraries[comparison.libraries.length - 1];
-      comparison.rankings.average = libraryScores.reduce((a, b) => a + b, 0) / libraryScores.length;
+      comparison.rankings.worst =
+        comparison.libraries[comparison.libraries.length - 1];
+      comparison.rankings.average =
+        libraryScores.reduce((a, b) => a + b, 0) / libraryScores.length;
     }
 
     return comparison;
@@ -340,7 +401,11 @@ export class FigmaLibraryAnalyticsSDK {
    * @param {Object} options - Query options
    * @returns {Promise<Array>} - All paginated data
    */
-  async getAllData(apiMethod: (...args: any[]) => any, fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getAllData(
+    apiMethod: (...args: any[]) => any,
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getAll(apiMethod.bind(this.service), fileKey, options);
   }
 
@@ -351,7 +416,7 @@ export class FigmaLibraryAnalyticsSDK {
    * @returns {Array<string>} - Available time periods
    */
   getAvailableTimePeriods(): string[] {
-    return ['lastWeek', 'lastMonth', 'lastQuarter'];
+    return ["lastWeek", "lastMonth", "lastQuarter"];
   }
 
   /**
@@ -361,7 +426,7 @@ export class FigmaLibraryAnalyticsSDK {
    */
   formatDate(date: Date | string): string {
     const dateObj = date instanceof Date ? date : new Date(date);
-    return dateObj.toISOString().split('T')[0];
+    return dateObj.toISOString().split("T")[0];
   }
 
   /**
@@ -394,23 +459,23 @@ export class FigmaLibraryAnalyticsSDK {
    */
   exportToCSV(data: any[], columns: string[] | null = null): string {
     if (!Array.isArray(data) || data.length === 0) {
-      return '';
+      return "";
     }
 
     const headers = columns || Object.keys(data[0]);
-    const csvRows = [headers.join(',')];
+    const csvRows = [headers.join(",")];
 
     for (const row of data) {
-      const values = headers.map(header => {
+      const values = headers.map((header) => {
         const value = row[header];
-        return typeof value === 'string' && value.includes(',')
+        return typeof value === "string" && value.includes(",")
           ? `"${value}"`
-          : String(value || '');
+          : String(value || "");
       });
-      csvRows.push(values.join(','));
+      csvRows.push(values.join(","));
     }
 
-    return csvRows.join('\n');
+    return csvRows.join("\n");
   }
 
   /**
@@ -419,7 +484,7 @@ export class FigmaLibraryAnalyticsSDK {
    */
   async close(): Promise<void> {
     // Clean up any resources if needed
-    this.logger.debug('FigmaLibraryAnalyticsSDK closed');
+    this.logger.debug("FigmaLibraryAnalyticsSDK closed");
   }
 }
 

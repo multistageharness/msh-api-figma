@@ -5,15 +5,13 @@
 
 // Error exports
 export {
-  WebhookError,
   WebhookAuthError,
+  WebhookError,
+  WebhookRateLimitError,
   WebhookValidationError,
-  WebhookRateLimitError
-} from './errors.js';
-
+} from "./errors.js";
 // SDK exports
-export { FigmaWebhooksSDK } from './sdk.js';
-export { default } from './sdk.js';
+export { default, FigmaWebhooksSDK } from "./sdk.js";
 
 // Version info
-export const VERSION = '1.0.0';
+export const VERSION = "1.0.0";

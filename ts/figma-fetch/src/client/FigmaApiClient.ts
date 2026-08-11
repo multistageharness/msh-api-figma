@@ -3,41 +3,44 @@
  * Integrates rate limiting, caching, retry logic, and error handling
  */
 
-import { FetchAdapter } from '../core/FetchAdapter.js';
-import { NativeFetchAdapter } from '../adapters/NativeFetchAdapter.js';
-import { UndiciFetchAdapter } from '../adapters/UndiciFetchAdapter.js';
-import { ProxyTlsFetchAdapter } from '../adapters/ProxyTlsFetchAdapter.js';
+import { NativeFetchAdapter } from "../adapters/NativeFetchAdapter.js";
+import { ProxyTlsFetchAdapter } from "../adapters/ProxyTlsFetchAdapter.js";
+import { UndiciFetchAdapter } from "../adapters/UndiciFetchAdapter.js";
+import type { FetchAdapter } from "../core/FetchAdapter.js";
 import {
-  resolveFigmaToken,
-  resolveBaseUrl,
-  resolveEgress,
-  egressNeedsProxyAdapter,
-  FIGMA_TOKEN_HEADER,
-} from './config.js';
-import { RateLimiter } from '../utils/RateLimiter.js';
-import { RequestCache } from '../utils/RequestCache.js';
-import { RetryHandler } from '../utils/RetryHandler.js';
-import {
-  FigmaApiClientConfig,
+  AuthenticationError,
+  createErrorFromResponse,
+} from "../errors/index.js";
+import type {
+  ClientStats,
+  ErrorInterceptor,
   FetchRequest,
   FetchResponse,
-  Logger,
-  ClientStats,
+  FigmaApiClientConfig,
   HealthCheckResult,
+  Logger,
   RequestInterceptor,
   ResponseInterceptor,
-  ErrorInterceptor,
-} from '../types/index.js';
-import { createErrorFromResponse, AuthenticationError } from '../errors/index.js';
+} from "../types/index.js";
+import { RateLimiter } from "../utils/RateLimiter.js";
+import { RequestCache } from "../utils/RequestCache.js";
+import { RetryHandler } from "../utils/RetryHandler.js";
+import {
+  egressNeedsProxyAdapter,
+  FIGMA_TOKEN_HEADER,
+  resolveBaseUrl,
+  resolveEgress,
+  resolveFigmaToken,
+} from "./config.js";
 
 /**
  * Default console logger
  */
 const defaultLogger: Logger = {
-  debug: (...args) => console.debug('[FigmaApiClient]', ...args),
-  info: (...args) => console.info('[FigmaApiClient]', ...args),
-  warn: (...args) => console.warn('[FigmaApiClient]', ...args),
-  error: (...args) => console.error('[FigmaApiClient]', ...args),
+  debug: (...args) => console.debug("[FigmaApiClient]", ...args),
+  info: (...args) => console.info("[FigmaApiClient]", ...args),
+  warn: (...args) => console.warn("[FigmaApiClient]", ...args),
+  error: (...args) => console.error("[FigmaApiClient]", ...args),
 };
 
 /**
@@ -64,7 +67,7 @@ export class FigmaApiClient {
     this.apiToken = resolveFigmaToken(config.apiToken);
     if (!this.apiToken) {
       throw new AuthenticationError(
-        'API token is required. Provide via config.apiToken or one of FIGMA_TOKEN / FIGMA_API_TOKEN / FIGMA_ACCESS_TOKEN'
+        "API token is required. Provide via config.apiToken or one of FIGMA_TOKEN / FIGMA_API_TOKEN / FIGMA_ACCESS_TOKEN",
       );
     }
 
@@ -74,7 +77,10 @@ export class FigmaApiClient {
 
     // Resolve the egress contract (R2): FIGMA_PROXY_URL / FIGMA_SSL_VERIFY,
     // overridable by explicit config.proxyUrl / config.sslVerify.
-    const egress = resolveEgress({ proxyUrl: config.proxyUrl, sslVerify: config.sslVerify });
+    const egress = resolveEgress({
+      proxyUrl: config.proxyUrl,
+      sslVerify: config.sslVerify,
+    });
 
     // Initialize fetch adapter. Adapter selection, highest precedence first:
     //   1. an explicitly injected adapter
@@ -95,13 +101,15 @@ export class FigmaApiClient {
     }
 
     // Initialize optional utilities
-    this.rateLimiter = config.rateLimiter !== null && config.rateLimiter !== undefined
-      ? new RateLimiter(config.rateLimiter)
-      : null;
+    this.rateLimiter =
+      config.rateLimiter !== null && config.rateLimiter !== undefined
+        ? new RateLimiter(config.rateLimiter)
+        : null;
 
-    this.cache = config.cache !== null && config.cache !== undefined
-      ? new RequestCache(config.cache)
-      : null;
+    this.cache =
+      config.cache !== null && config.cache !== undefined
+        ? new RequestCache(config.cache)
+        : null;
 
     this.retryHandler = new RetryHandler(config.retry);
 
@@ -120,10 +128,13 @@ export class FigmaApiClient {
   /**
    * Make HTTP request to Figma API
    */
-  async request<T = any>(path: string, options: Partial<FetchRequest> = {}): Promise<T> {
+  async request<T = any>(
+    path: string,
+    options: Partial<FetchRequest> = {},
+  ): Promise<T> {
     const startTime = Date.now();
     const url = `${this.baseUrl}${path}`;
-    const method = options.method || 'GET';
+    const method = options.method || "GET";
 
     // Update stats
     this.stats.totalRequests++;
@@ -136,7 +147,7 @@ export class FigmaApiClient {
       }
 
       // Check cache for GET requests
-      if (method === 'GET' && this.cache) {
+      if (method === "GET" && this.cache) {
         const cached = this.cache.get(url, options);
         if (cached !== null) {
           this.stats.cachedResponses++;
@@ -151,9 +162,9 @@ export class FigmaApiClient {
         method,
         headers: {
           [FIGMA_TOKEN_HEADER]: this.apiToken,
-          'Content-Type': 'application/json',
-          'User-Agent': 'figma-api-fetch/1.0.0',
-          'Accept': 'application/json',
+          "Content-Type": "application/json",
+          "User-Agent": "figma-api-fetch/1.0.0",
+          Accept: "application/json",
           ...options.headers,
         },
         body: options.body,
@@ -187,9 +198,9 @@ export class FigmaApiClient {
           this.stats.retries++;
           this.logger.debug(
             `Retrying request after ${delay}ms (attempt ${attempt + 1}/${this.retryHandler.getConfig().maxRetries})`,
-            { error: error.message }
+            { error: error.message },
           );
-        }
+        },
       );
 
       // Apply response interceptors
@@ -199,7 +210,7 @@ export class FigmaApiClient {
       }
 
       // Cache successful GET responses
-      if (method === 'GET' && this.cache) {
+      if (method === "GET" && this.cache) {
         this.cache.set(url, finalResponse.data, options);
       }
 
@@ -209,7 +220,6 @@ export class FigmaApiClient {
 
       this.logger.debug(`Request successful: ${method} ${path}`);
       return finalResponse.data;
-
     } catch (error: any) {
       this.stats.failedRequests++;
       this.updateResponseTime(startTime);
@@ -231,7 +241,10 @@ export class FigmaApiClient {
   /**
    * Make GET request with query parameters
    */
-  async get<T = any>(path: string, params: Record<string, any> = {}): Promise<T> {
+  async get<T = any>(
+    path: string,
+    params: Record<string, any> = {},
+  ): Promise<T> {
     const searchParams = new URLSearchParams();
 
     // Add non-null/undefined parameters
@@ -244,7 +257,7 @@ export class FigmaApiClient {
     const queryString = searchParams.toString();
     const fullPath = queryString ? `${path}?${queryString}` : path;
 
-    return this.request<T>(fullPath, { method: 'GET' });
+    return this.request<T>(fullPath, { method: "GET" });
   }
 
   /**
@@ -252,7 +265,7 @@ export class FigmaApiClient {
    */
   async post<T = any>(path: string, data: any = {}): Promise<T> {
     return this.request<T>(path, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
@@ -262,7 +275,7 @@ export class FigmaApiClient {
    */
   async put<T = any>(path: string, data: any = {}): Promise<T> {
     return this.request<T>(path, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }
@@ -272,7 +285,7 @@ export class FigmaApiClient {
    */
   async patch<T = any>(path: string, data: any = {}): Promise<T> {
     return this.request<T>(path, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify(data),
     });
   }
@@ -281,7 +294,7 @@ export class FigmaApiClient {
    * Make DELETE request
    */
   async delete<T = any>(path: string): Promise<T> {
-    return this.request<T>(path, { method: 'DELETE' });
+    return this.request<T>(path, { method: "DELETE" });
   }
 
   /**
@@ -292,7 +305,7 @@ export class FigmaApiClient {
    * reaching for a private endpoint.
    */
   async getMe<T = any>(): Promise<T> {
-    return this.get<T>('/v1/me');
+    return this.get<T>("/v1/me");
   }
 
   /**
@@ -304,14 +317,14 @@ export class FigmaApiClient {
     try {
       const user = await this.getMe();
       return {
-        status: 'healthy',
+        status: "healthy",
         latencyMs: Date.now() - startTime,
         user,
         timestamp: new Date().toISOString(),
       };
     } catch (error: any) {
       return {
-        status: 'unhealthy',
+        status: "unhealthy",
         error: error.message,
         latencyMs: Date.now() - startTime,
         timestamp: new Date().toISOString(),
@@ -388,13 +401,15 @@ export class FigmaApiClient {
    */
   private updateResponseTime(startTime: number): void {
     const duration = Date.now() - startTime;
-    const totalRequests = this.stats.successfulRequests + this.stats.failedRequests;
+    const totalRequests =
+      this.stats.successfulRequests + this.stats.failedRequests;
 
     if (totalRequests === 1) {
       this.stats.avgResponseTime = duration;
     } else {
       this.stats.avgResponseTime =
-        (this.stats.avgResponseTime * (totalRequests - 1) + duration) / totalRequests;
+        (this.stats.avgResponseTime * (totalRequests - 1) + duration) /
+        totalRequests;
     }
   }
 }

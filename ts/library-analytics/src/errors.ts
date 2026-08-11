@@ -25,7 +25,9 @@ export class LibraryAnalyticsError extends Error {
  */
 export class LibraryAnalyticsRateLimitError extends LibraryAnalyticsError {
   constructor(retryAfter?: number) {
-    super('Library Analytics API rate limit exceeded', 'RATE_LIMIT_EXCEEDED', { retryAfter });
+    super("Library Analytics API rate limit exceeded", "RATE_LIMIT_EXCEEDED", {
+      retryAfter,
+    });
   }
 }
 
@@ -35,7 +37,10 @@ export class LibraryAnalyticsRateLimitError extends LibraryAnalyticsError {
  */
 export class LibraryAnalyticsAuthError extends LibraryAnalyticsError {
   constructor() {
-    super('Library Analytics authentication failed - requires library_analytics:read scope', 'AUTH_FAILED');
+    super(
+      "Library Analytics authentication failed - requires library_analytics:read scope",
+      "AUTH_FAILED",
+    );
   }
 }
 
@@ -45,6 +50,9 @@ export class LibraryAnalyticsAuthError extends LibraryAnalyticsError {
  */
 export class LibraryAnalyticsValidationError extends LibraryAnalyticsError {
   constructor(field: string, value: any) {
-    super(`Invalid library analytics ${field}: ${value}`, 'VALIDATION_ERROR', { field, value });
+    super(`Invalid library analytics ${field}: ${value}`, "VALIDATION_ERROR", {
+      field,
+      value,
+    });
   }
 }

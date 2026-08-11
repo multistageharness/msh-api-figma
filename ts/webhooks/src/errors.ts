@@ -17,7 +17,7 @@ export class WebhookError extends Error {
 
   constructor(message: string, { code, meta }: WebhookErrorOptions = {}) {
     super(message);
-    this.name = 'WebhookError';
+    this.name = "WebhookError";
     this.code = code;
     this.meta = meta;
     Error.captureStackTrace(this, this.constructor);
@@ -31,7 +31,7 @@ export class WebhookError extends Error {
 export class WebhookAuthError extends WebhookError {
   constructor(message: string, options: WebhookErrorOptions = {}) {
     super(message, options);
-    this.name = 'WebhookAuthError';
+    this.name = "WebhookAuthError";
   }
 }
 
@@ -42,7 +42,7 @@ export class WebhookAuthError extends WebhookError {
 export class WebhookValidationError extends WebhookError {
   constructor(message: string, options: WebhookErrorOptions = {}) {
     super(message, options);
-    this.name = 'WebhookValidationError';
+    this.name = "WebhookValidationError";
   }
 }
 
@@ -53,6 +53,6 @@ export class WebhookValidationError extends WebhookError {
 export class WebhookRateLimitError extends WebhookError {
   constructor(message: string, options: WebhookErrorOptions = {}) {
     super(message, options);
-    this.name = 'WebhookRateLimitError';
+    this.name = "WebhookRateLimitError";
   }
 }

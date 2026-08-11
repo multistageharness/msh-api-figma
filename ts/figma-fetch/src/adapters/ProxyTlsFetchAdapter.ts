@@ -15,22 +15,22 @@
  * actually requires it; the default path stays on native/undici fetch.
  */
 
-import http from 'node:http';
-import https from 'node:https';
-import tls from 'node:tls';
-import { FetchAdapter } from '../core/FetchAdapter.js';
-import { FetchRequest, FetchResponse } from '../types/index.js';
-import { NetworkError, TimeoutError } from '../errors/index.js';
-import { EgressConfig } from '../client/config.js';
+import http from "node:http";
+import https from "node:https";
+import tls from "node:tls";
+import type { EgressConfig } from "../client/config.js";
+import { FetchAdapter } from "../core/FetchAdapter.js";
+import { NetworkError, TimeoutError } from "../errors/index.js";
+import type { FetchRequest, FetchResponse } from "../types/index.js";
 
 /** Convert a request body to a Buffer the node http layer can write. */
-function bodyToBuffer(body: FetchRequest['body']): Buffer | null {
+function bodyToBuffer(body: FetchRequest["body"]): Buffer | null {
   if (body === undefined || body === null) return null;
-  if (typeof body === 'string') return Buffer.from(body, 'utf8');
+  if (typeof body === "string") return Buffer.from(body, "utf8");
   if (Buffer.isBuffer(body)) return body as unknown as Buffer;
   if (body instanceof ArrayBuffer) return Buffer.from(body);
   // Fallback: stringify anything else (FormData/Blob are not expected on this path).
-  return Buffer.from(String(body), 'utf8');
+  return Buffer.from(String(body), "utf8");
 }
 
 export class ProxyTlsFetchAdapter extends FetchAdapter {
@@ -45,7 +45,13 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
 
   async fetch<T = any>(request: FetchRequest): Promise<FetchResponse<T>> {
     const transformed = this.transformRequest(request);
-    const { url: urlStr, method = 'GET', headers = {}, body, timeout } = transformed;
+    const {
+      url: urlStr,
+      method = "GET",
+      headers = {},
+      body,
+      timeout,
+    } = transformed;
     const bodyBuf = bodyToBuffer(body);
 
     // Honor the request timeout by wiring an AbortController, mirroring how the
@@ -62,8 +68,13 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
     const signal = transformed.signal || controller.signal;
 
     try {
-      const raw = await this.nodeFetch(urlStr, { method, headers, body: bodyBuf, signal });
-      const contentType = raw.headers.get('content-type');
+      const raw = await this.nodeFetch(urlStr, {
+        method,
+        headers,
+        body: bodyBuf,
+        signal,
+      });
+      const contentType = raw.headers.get("content-type");
       const data = await this.parseResponseData(raw, contentType);
       const fetchResponse: FetchResponse<T> = {
         status: raw.status,
@@ -74,10 +85,10 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
       };
       return this.transformResponse(fetchResponse);
     } catch (error: any) {
-      if (timedOut || error?.name === 'AbortError') {
+      if (timedOut || error?.name === "AbortError") {
         throw new TimeoutError(timeout || 30000);
       }
-      throw new NetworkError(error?.message || 'Network request failed', error);
+      throw new NetworkError(error?.message || "Network request failed", error);
     } finally {
       if (timer) clearTimeout(timer);
     }
@@ -89,7 +100,12 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
    */
   private nodeFetch(
     urlStr: string,
-    opts: { method: string; headers: Record<string, string>; body: Buffer | null; signal?: AbortSignal }
+    opts: {
+      method: string;
+      headers: Record<string, string>;
+      body: Buffer | null;
+      signal?: AbortSignal;
+    },
   ): Promise<{
     ok: boolean;
     status: number;
@@ -112,12 +128,12 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
         reject(err);
         return;
       }
-      const isHttps = url.protocol === 'https:';
+      const isHttps = url.protocol === "https:";
 
       let settled = false;
       let req: http.ClientRequest | null = null;
       const cleanup = () => {
-        if (signal) signal.removeEventListener('abort', onAbort);
+        if (signal) signal.removeEventListener("abort", onAbort);
       };
       const fail = (err: Error) => {
         if (settled) return;
@@ -132,8 +148,8 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
         resolve(val);
       };
       function onAbort() {
-        const err = new Error('The operation was aborted');
-        err.name = 'AbortError';
+        const err = new Error("The operation was aborted");
+        err.name = "AbortError";
         try {
           req?.destroy(err);
         } catch {
@@ -146,32 +162,38 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
           onAbort();
           return;
         }
-        signal.addEventListener('abort', onAbort, { once: true });
+        signal.addEventListener("abort", onAbort, { once: true });
       }
 
       const collect = (res: http.IncomingMessage) => {
         const chunks: Buffer[] = [];
-        res.on('data', (c) => chunks.push(c as Buffer));
-        res.on('end', () => {
+        res.on("data", (c) => chunks.push(c as Buffer));
+        res.on("end", () => {
           const buf = Buffer.concat(chunks);
-          const text = buf.toString('utf8');
+          const text = buf.toString("utf8");
           const status = res.statusCode || 0;
           const headersObject: Record<string, string> = {};
           for (const [k, v] of Object.entries(res.headers)) {
-            headersObject[k] = Array.isArray(v) ? v.join(', ') : String(v ?? '');
+            headersObject[k] = Array.isArray(v)
+              ? v.join(", ")
+              : String(v ?? "");
           }
           succeed({
             ok: status >= 200 && status < 300,
             status,
-            statusText: res.statusMessage || '',
-            headers: { get: (n: string) => res.headers[String(n).toLowerCase()] as string ?? null },
+            statusText: res.statusMessage || "",
+            headers: {
+              get: (n: string) =>
+                (res.headers[String(n).toLowerCase()] as string) ?? null,
+            },
             headersObject,
             text: async () => text,
             json: async () => JSON.parse(text),
-            arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+            arrayBuffer: async () =>
+              buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
           });
         });
-        res.on('error', fail);
+        res.on("error", fail);
       };
 
       const sendBody = (request: http.ClientRequest) => {
@@ -191,25 +213,25 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
         };
         if (isHttps) reqOpts.rejectUnauthorized = sslVerify;
         req = mod.request(reqOpts, collect);
-        req.on('error', fail);
+        req.on("error", fail);
         sendBody(req);
         return;
       }
 
       // --- Through a proxy. ---
-      const proxyIsHttps = proxyUrl.protocol === 'https:';
+      const proxyIsHttps = proxyUrl.protocol === "https:";
       const proxyAuth = proxyUrl.username
-        ? 'Basic ' +
+        ? "Basic " +
           Buffer.from(
-            `${decodeURIComponent(proxyUrl.username)}:${decodeURIComponent(proxyUrl.password)}`
-          ).toString('base64')
+            `${decodeURIComponent(proxyUrl.username)}:${decodeURIComponent(proxyUrl.password)}`,
+          ).toString("base64")
         : null;
 
       if (!isHttps) {
         // HTTP target through the proxy: absolute-form request URI.
         const mod = proxyIsHttps ? https : http;
         const h: Record<string, string> = { ...headers, Host: url.host };
-        if (proxyAuth) h['Proxy-Authorization'] = proxyAuth;
+        if (proxyAuth) h["Proxy-Authorization"] = proxyAuth;
         const reqOpts: https.RequestOptions = {
           method,
           hostname: proxyUrl.hostname,
@@ -219,7 +241,7 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
         };
         if (proxyIsHttps) reqOpts.rejectUnauthorized = sslVerify;
         req = mod.request(reqOpts, collect);
-        req.on('error', fail);
+        req.on("error", fail);
         sendBody(req);
         return;
       }
@@ -228,9 +250,9 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
       const connMod = proxyIsHttps ? https : http;
       const targetPort = Number(url.port) || 443;
       const connHeaders: Record<string, string> = {};
-      if (proxyAuth) connHeaders['Proxy-Authorization'] = proxyAuth;
+      if (proxyAuth) connHeaders["Proxy-Authorization"] = proxyAuth;
       const connectReq = connMod.request({
-        method: 'CONNECT',
+        method: "CONNECT",
         hostname: proxyUrl.hostname,
         port: proxyUrl.port || (proxyIsHttps ? 443 : 80),
         path: `${url.hostname}:${targetPort}`,
@@ -238,15 +260,23 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
         ...(proxyIsHttps ? { rejectUnauthorized: sslVerify } : {}),
       });
       req = connectReq;
-      connectReq.on('error', fail);
-      connectReq.on('connect', (res, socket) => {
+      connectReq.on("error", fail);
+      connectReq.on("connect", (res, socket) => {
         if (res.statusCode !== 200) {
           socket.destroy();
-          fail(new Error(`proxy CONNECT to ${url.hostname}:${targetPort} failed: HTTP ${res.statusCode}`));
+          fail(
+            new Error(
+              `proxy CONNECT to ${url.hostname}:${targetPort} failed: HTTP ${res.statusCode}`,
+            ),
+          );
           return;
         }
-        const tlsSocket = tls.connect({ socket, servername: url.hostname, rejectUnauthorized: sslVerify });
-        tlsSocket.on('error', fail);
+        const tlsSocket = tls.connect({
+          socket,
+          servername: url.hostname,
+          rejectUnauthorized: sslVerify,
+        });
+        tlsSocket.on("error", fail);
         const innerReq = https.request(
           {
             method,
@@ -256,10 +286,10 @@ export class ProxyTlsFetchAdapter extends FetchAdapter {
             headers,
             createConnection: () => tlsSocket,
           },
-          collect
+          collect,
         );
         req = innerReq;
-        innerReq.on('error', fail);
+        innerReq.on("error", fail);
         sendBody(innerReq);
       });
       connectReq.end();

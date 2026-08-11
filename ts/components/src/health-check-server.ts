@@ -3,53 +3,53 @@
  * Provides status information and simple connectivity tests
  */
 
-import Fastify from 'fastify';
-import { FigmaApiClient } from '@figma-api/fetch';
-import { FigmaComponentsSDK } from './index.js';
+import { FigmaApiClient } from "@figma-api/fetch";
+import Fastify from "fastify";
+import { FigmaComponentsSDK } from "./index.js";
 
 const fastify = Fastify({
-  logger: true
+  logger: true,
 });
 
 const PORT: any = process.env.PORT || 3002;
 const FIGMA_TOKEN = process.env.FIGMA_TOKEN;
 
 // Health check endpoint
-fastify.get('/', async (request, reply) => {
+fastify.get("/", async (_request, _reply) => {
   const hasToken = !!FIGMA_TOKEN;
 
   return {
-    module: 'figma-components',
-    version: '1.0.0',
-    status: hasToken ? 'healthy' : 'unhealthy',
+    module: "figma-components",
+    version: "1.0.0",
+    status: hasToken ? "healthy" : "unhealthy",
     environment: {
-      FIGMA_TOKEN: hasToken ? 'present' : 'missing'
+      FIGMA_TOKEN: hasToken ? "present" : "missing",
     },
     endpoints: [
-      'GET / - Health check and module information',
-      'GET /test - Test Figma API connectivity',
-      'GET /components/team/:teamId - Get team components (example)',
-      'GET /components/file/:fileKey - Get file components (example)',
-      'GET /library/:teamId - Get complete team library (example)'
+      "GET / - Health check and module information",
+      "GET /test - Test Figma API connectivity",
+      "GET /components/team/:teamId - Get team components (example)",
+      "GET /components/file/:fileKey - Get file components (example)",
+      "GET /library/:teamId - Get complete team library (example)",
     ],
     availableMethods: [
-      'getTeamComponents(teamId)',
-      'getFileComponents(fileKey)',
-      'getComponentSets(teamId)',
-      'getTeamStyles(teamId)',
-      'getFileStyles(fileKey)',
-      'getTeamLibrary(teamId)',
-      'searchComponents(teamId, query)'
-    ]
+      "getTeamComponents(teamId)",
+      "getFileComponents(fileKey)",
+      "getComponentSets(teamId)",
+      "getTeamStyles(teamId)",
+      "getFileStyles(fileKey)",
+      "getTeamLibrary(teamId)",
+      "searchComponents(teamId, query)",
+    ],
   };
 });
 
 // Simple test endpoint
-fastify.get('/test', async (request, reply) => {
+fastify.get("/test", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -59,8 +59,9 @@ fastify.get('/test', async (request, reply) => {
     if (!testTeamId) {
       return {
         success: true,
-        message: 'SDK initialized successfully. Provide ?teamId=YOUR_TEAM_ID to test API connectivity',
-        tokenPresent: true
+        message:
+          "SDK initialized successfully. Provide ?teamId=YOUR_TEAM_ID to test API connectivity",
+        tokenPresent: true,
       };
     }
 
@@ -70,25 +71,25 @@ fastify.get('/test', async (request, reply) => {
 
     return {
       success: true,
-      message: 'Successfully connected to Figma API',
+      message: "Successfully connected to Figma API",
       teamId: testTeamId,
-      componentsCount: components?.meta?.components?.length || 0
+      componentsCount: components?.meta?.components?.length || 0,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Get team components
-fastify.get('/components/team/:teamId', async (request, reply) => {
+fastify.get("/components/team/:teamId", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -101,23 +102,23 @@ fastify.get('/components/team/:teamId', async (request, reply) => {
     return {
       success: true,
       teamId,
-      components
+      components,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Get file components
-fastify.get('/components/file/:fileKey', async (request, reply) => {
+fastify.get("/components/file/:fileKey", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -130,23 +131,23 @@ fastify.get('/components/file/:fileKey', async (request, reply) => {
     return {
       success: true,
       fileKey,
-      components
+      components,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Get complete team library
-fastify.get('/library/:teamId', async (request, reply) => {
+fastify.get("/library/:teamId", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -159,13 +160,13 @@ fastify.get('/library/:teamId', async (request, reply) => {
     return {
       success: true,
       teamId,
-      library
+      library,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
@@ -173,11 +174,13 @@ fastify.get('/library/:teamId', async (request, reply) => {
 // Start server
 const start = async () => {
   try {
-    await fastify.listen({ port: PORT, host: '0.0.0.0' });
-    console.log(`\n🚀 Figma Components Health Check Server running on port ${PORT}`);
+    await fastify.listen({ port: PORT, host: "0.0.0.0" });
+    console.log(
+      `\n🚀 Figma Components Health Check Server running on port ${PORT}`,
+    );
     console.log(`   Health check: http://localhost:${PORT}/`);
     console.log(`   Test endpoint: http://localhost:${PORT}/test`);
-    console.log(`   FIGMA_TOKEN: ${FIGMA_TOKEN ? '✓ Set' : '✗ Not set'}\n`);
+    console.log(`   FIGMA_TOKEN: ${FIGMA_TOKEN ? "✓ Set" : "✗ Not set"}\n`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

@@ -3,7 +3,7 @@
  * Provides ergonomic API for Dev Resources operations
  */
 
-import { FigmaDevResourcesService } from './service.js';
+import { FigmaDevResourcesService } from "./service.js";
 import type {
   CreateDevResourcesResponse,
   DeleteResult,
@@ -16,8 +16,8 @@ import type {
   TargetResource,
   UpdateDevResourceInput,
   UpdateDevResourcesResponse,
-  ValidationResult
-} from './types.js';
+  ValidationResult,
+} from "./types.js";
 
 export interface FigmaDevResourcesSDKConfig {
   fetcher?: any;
@@ -45,7 +45,9 @@ export class FigmaDevResourcesSDK {
    */
   constructor({ fetcher, logger }: FigmaDevResourcesSDKConfig = {}) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
 
     this.fetcher = fetcher;
@@ -60,7 +62,10 @@ export class FigmaDevResourcesSDK {
    * @param {string|string[]} [nodeIds] - Optional node IDs to filter by
    * @returns {Promise<Object[]>} Array of dev resources
    */
-  async getFileDevResources(fileKey: string, nodeIds: string | string[] | null = null): Promise<DevResource[]> {
+  async getFileDevResources(
+    fileKey: string,
+    nodeIds: string | string[] | null = null,
+  ): Promise<DevResource[]> {
     const options = nodeIds ? { nodeIds } : {};
     const response = await this.service.getDevResources(fileKey, options);
     return response.dev_resources || [];
@@ -72,7 +77,10 @@ export class FigmaDevResourcesSDK {
    * @param {string[]} nodeIds - Array of node IDs
    * @returns {Promise<Object[]>} Array of dev resources for the specified nodes
    */
-  async getNodeDevResources(fileKey: string, nodeIds: string[]): Promise<DevResource[]> {
+  async getNodeDevResources(
+    fileKey: string,
+    nodeIds: string[],
+  ): Promise<DevResource[]> {
     return this.getFileDevResources(fileKey, nodeIds);
   }
 
@@ -84,13 +92,20 @@ export class FigmaDevResourcesSDK {
    * @param {string} url - The resource URL
    * @returns {Promise<Object>} Created dev resource
    */
-  async createDevResource(fileKey: string, nodeId: string, name: string, url: string): Promise<DevResource> {
-    const response = await this.service.createDevResources([{
-      file_key: fileKey,
-      node_id: nodeId,
-      name,
-      url
-    }]);
+  async createDevResource(
+    fileKey: string,
+    nodeId: string,
+    name: string,
+    url: string,
+  ): Promise<DevResource> {
+    const response = await this.service.createDevResources([
+      {
+        file_key: fileKey,
+        node_id: nodeId,
+        name,
+        url,
+      },
+    ]);
 
     if (response.links_created && response.links_created.length > 0) {
       return response.links_created[0];
@@ -100,7 +115,7 @@ export class FigmaDevResourcesSDK {
       throw new Error(response.errors[0].error);
     }
 
-    throw new Error('Unknown error creating dev resource');
+    throw new Error("Unknown error creating dev resource");
   }
 
   /**
@@ -112,12 +127,15 @@ export class FigmaDevResourcesSDK {
    * @param {string} resources[].url - The resource URL
    * @returns {Promise<Object>} Creation results
    */
-  async createFileDevResources(fileKey: string, resources: FileResourceInput[]): Promise<CreateDevResourcesResponse> {
-    const devResources = resources.map(resource => ({
+  async createFileDevResources(
+    fileKey: string,
+    resources: FileResourceInput[],
+  ): Promise<CreateDevResourcesResponse> {
+    const devResources = resources.map((resource) => ({
       file_key: fileKey,
       node_id: resource.nodeId,
       name: resource.name,
-      url: resource.url
+      url: resource.url,
     }));
 
     return this.service.createDevResources(devResources);
@@ -132,12 +150,14 @@ export class FigmaDevResourcesSDK {
    * @param {string} resources[].url - The resource URL
    * @returns {Promise<Object>} Creation results
    */
-  async createMultiFileDevResources(resources: MultiFileResourceInput[]): Promise<CreateDevResourcesResponse> {
-    const devResources = resources.map(resource => ({
+  async createMultiFileDevResources(
+    resources: MultiFileResourceInput[],
+  ): Promise<CreateDevResourcesResponse> {
+    const devResources = resources.map((resource) => ({
       file_key: resource.fileKey,
       node_id: resource.nodeId,
       name: resource.name,
-      url: resource.url
+      url: resource.url,
     }));
 
     return this.service.createDevResources(devResources);
@@ -151,11 +171,16 @@ export class FigmaDevResourcesSDK {
    * @param {string} [updates.url] - New URL
    * @returns {Promise<Object>} Updated dev resource
    */
-  async updateDevResource(devResourceId: string, updates: Omit<UpdateDevResourceInput, 'id'>): Promise<DevResource> {
-    const response = await this.service.updateDevResources([{
-      id: devResourceId,
-      ...updates
-    }]);
+  async updateDevResource(
+    devResourceId: string,
+    updates: Omit<UpdateDevResourceInput, "id">,
+  ): Promise<DevResource> {
+    const response = await this.service.updateDevResources([
+      {
+        id: devResourceId,
+        ...updates,
+      },
+    ]);
 
     if (response.links_updated && response.links_updated.length > 0) {
       return response.links_updated[0];
@@ -165,7 +190,7 @@ export class FigmaDevResourcesSDK {
       throw new Error(response.errors[0].error);
     }
 
-    throw new Error('Unknown error updating dev resource');
+    throw new Error("Unknown error updating dev resource");
   }
 
   /**
@@ -176,7 +201,9 @@ export class FigmaDevResourcesSDK {
    * @param {string} [updates[].url] - New URL
    * @returns {Promise<Object>} Update results
    */
-  async updateMultipleDevResources(updates: UpdateDevResourceInput[]): Promise<UpdateDevResourcesResponse> {
+  async updateMultipleDevResources(
+    updates: UpdateDevResourceInput[],
+  ): Promise<UpdateDevResourcesResponse> {
     return this.service.updateDevResources(updates);
   }
 
@@ -186,7 +213,10 @@ export class FigmaDevResourcesSDK {
    * @param {string} devResourceId - The dev resource ID
    * @returns {Promise<void>}
    */
-  async deleteDevResource(fileKey: string, devResourceId: string): Promise<void> {
+  async deleteDevResource(
+    fileKey: string,
+    devResourceId: string,
+  ): Promise<void> {
     await this.service.deleteDevResource(fileKey, devResourceId);
   }
 
@@ -197,7 +227,9 @@ export class FigmaDevResourcesSDK {
    * @param {string} resources[].id - The dev resource ID
    * @returns {Promise<Object[]>} Array of deletion results
    */
-  async deleteMultipleDevResources(resources: Array<{ fileKey: string; id: string }>): Promise<DeleteResult[]> {
+  async deleteMultipleDevResources(
+    resources: Array<{ fileKey: string; id: string }>,
+  ): Promise<DeleteResult[]> {
     const promises = resources.map(async (resource): Promise<DeleteResult> => {
       try {
         await this.deleteDevResource(resource.fileKey, resource.id);
@@ -207,7 +239,7 @@ export class FigmaDevResourcesSDK {
           success: false,
           fileKey: resource.fileKey,
           id: resource.id,
-          error: error.message
+          error: error.message,
         };
       }
     });
@@ -225,23 +257,31 @@ export class FigmaDevResourcesSDK {
    * @param {string} [targetResources[].id] - Existing resource ID (for updates)
    * @returns {Promise<Object>} Sync results
    */
-  async syncFileDevResources(fileKey: string, targetResources: TargetResource[]): Promise<SyncResult> {
+  async syncFileDevResources(
+    fileKey: string,
+    targetResources: TargetResource[],
+  ): Promise<SyncResult> {
     // Get current resources
     const currentResources = await this.getFileDevResources(fileKey);
-    const currentById = new Map(currentResources.map(r => [r.id, r]));
+    const _currentById = new Map(currentResources.map((r) => [r.id, r]));
     const currentByNodeUrl = new Map(
-      currentResources.map(r => [`${r.node_id}:${r.url}`, r])
+      currentResources.map((r) => [`${r.node_id}:${r.url}`, r]),
     );
 
     const results: SyncResult = {
       created: [],
       updated: [],
       deleted: [],
-      errors: []
+      errors: [],
     };
 
     // Determine operations needed
-    const toCreate: Array<{ file_key: string; node_id: string; name: string; url: string }> = [];
+    const toCreate: Array<{
+      file_key: string;
+      node_id: string;
+      name: string;
+      url: string;
+    }> = [];
     const toUpdate: Array<{ id: string; name: string; url: string }> = [];
     const targetIds = new Set<string>();
 
@@ -256,7 +296,7 @@ export class FigmaDevResourcesSDK {
           toUpdate.push({
             id: existing.id,
             name: target.name,
-            url: target.url
+            url: target.url,
           });
         }
       } else {
@@ -264,13 +304,13 @@ export class FigmaDevResourcesSDK {
           file_key: fileKey,
           node_id: target.nodeId,
           name: target.name,
-          url: target.url
+          url: target.url,
         });
       }
     }
 
     // Resources to delete (not in target list)
-    const toDelete = currentResources.filter(r => !targetIds.has(r.id));
+    const toDelete = currentResources.filter((r) => !targetIds.has(r.id));
 
     // Execute operations
     try {
@@ -291,10 +331,12 @@ export class FigmaDevResourcesSDK {
       // Delete orphaned resources
       if (toDelete.length > 0) {
         const deleteResults = await this.deleteMultipleDevResources(
-          toDelete.map(r => ({ fileKey, id: r.id }))
+          toDelete.map((r) => ({ fileKey, id: r.id })),
         );
-        results.deleted = deleteResults.filter(r => r.success);
-        results.errors.push(...(deleteResults.filter(r => !r.success) as any[]));
+        results.deleted = deleteResults.filter((r) => r.success);
+        results.errors.push(
+          ...(deleteResults.filter((r) => !r.success) as any[]),
+        );
       }
     } catch (error: any) {
       results.errors.push({ error: error.message });
@@ -309,10 +351,14 @@ export class FigmaDevResourcesSDK {
    * @param {string|RegExp} pattern - Search pattern
    * @returns {Promise<Object[]>} Matching dev resources
    */
-  async searchDevResources(fileKey: string, pattern: string | RegExp): Promise<DevResource[]> {
+  async searchDevResources(
+    fileKey: string,
+    pattern: string | RegExp,
+  ): Promise<DevResource[]> {
     const resources = await this.getFileDevResources(fileKey);
-    const regex = pattern instanceof RegExp ? pattern : new RegExp(pattern, 'i');
-    return resources.filter(resource => regex.test(resource.name));
+    const regex =
+      pattern instanceof RegExp ? pattern : new RegExp(pattern, "i");
+    return resources.filter((resource) => regex.test(resource.name));
   }
 
   /**
@@ -321,10 +367,14 @@ export class FigmaDevResourcesSDK {
    * @param {string|RegExp} urlPattern - URL pattern to match
    * @returns {Promise<Object[]>} Matching dev resources
    */
-  async getDevResourcesByUrl(fileKey: string, urlPattern: string | RegExp): Promise<DevResource[]> {
+  async getDevResourcesByUrl(
+    fileKey: string,
+    urlPattern: string | RegExp,
+  ): Promise<DevResource[]> {
     const resources = await this.getFileDevResources(fileKey);
-    const regex = urlPattern instanceof RegExp ? urlPattern : new RegExp(urlPattern, 'i');
-    return resources.filter(resource => regex.test(resource.url));
+    const regex =
+      urlPattern instanceof RegExp ? urlPattern : new RegExp(urlPattern, "i");
+    return resources.filter((resource) => regex.test(resource.url));
   }
 
   /**
@@ -337,7 +387,7 @@ export class FigmaDevResourcesSDK {
     const nodeGroups = new Map<string, number>();
     const urlDomains = new Map<string, number>();
 
-    resources.forEach(resource => {
+    resources.forEach((resource) => {
       // Count by node
       const nodeCount = nodeGroups.get(resource.node_id) || 0;
       nodeGroups.set(resource.node_id, nodeCount + 1);
@@ -357,7 +407,7 @@ export class FigmaDevResourcesSDK {
       byNode: Object.fromEntries(nodeGroups),
       byDomain: Object.fromEntries(urlDomains),
       nodesWithResources: nodeGroups.size,
-      domains: urlDomains.size
+      domains: urlDomains.size,
     };
   }
 
@@ -382,7 +432,7 @@ export class FigmaDevResourcesSDK {
       } catch (error: any) {
         invalid.push({
           ...resource,
-          error: `Invalid URL format: ${error.message}`
+          error: `Invalid URL format: ${error.message}`,
         });
       }
     }

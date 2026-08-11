@@ -3,8 +3,8 @@
  * Implements token bucket algorithm with burst support
  */
 
-import { RateLimiterConfig, RateLimiterStats } from '../types/index.js';
-import { RateLimitError } from '../errors/index.js';
+import { RateLimitError } from "../errors/index.js";
+import type { RateLimiterConfig, RateLimiterStats } from "../types/index.js";
 
 /**
  * RateLimiter class
@@ -38,7 +38,7 @@ export class RateLimiter {
     }
 
     // Clean old requests (older than 1 minute)
-    this.requests = this.requests.filter(time => now - time < 60000);
+    this.requests = this.requests.filter((time) => now - time < 60000);
 
     // Try to use burst token first
     if (this.burstTokens > 0) {
@@ -63,13 +63,19 @@ export class RateLimiter {
    */
   getStats(): RateLimiterStats {
     const now = Date.now();
-    const recentRequests = this.requests.filter(time => now - time < 60000);
+    const recentRequests = this.requests.filter((time) => now - time < 60000);
 
     return {
       requestsLastMinute: recentRequests.length,
-      remainingRequests: Math.max(0, this.requestsPerMinute - recentRequests.length),
+      remainingRequests: Math.max(
+        0,
+        this.requestsPerMinute - recentRequests.length,
+      ),
       burstTokensRemaining: this.burstTokens,
-      resetTime: recentRequests.length > 0 ? Math.max(...recentRequests) + 60000 : now + 60000,
+      resetTime:
+        recentRequests.length > 0
+          ? Math.max(...recentRequests) + 60000
+          : now + 60000,
     };
   }
 

@@ -4,84 +4,84 @@
  * Main exports for the figma-fetch module
  */
 
-// Core
-export { FetchAdapter } from './core/FetchAdapter.js';
-
 // Adapters
-export { NativeFetchAdapter, UndiciFetchAdapter, ProxyTlsFetchAdapter } from './adapters/index.js';
-
+export {
+  NativeFetchAdapter,
+  ProxyTlsFetchAdapter,
+  UndiciFetchAdapter,
+} from "./adapters/index.js";
+export type { EgressConfig } from "./client/index.js";
 // Client
-export { FigmaApiClient } from './client/index.js';
-
 // Client config (token resolver + base URL + egress contract)
 export {
   DEFAULT_BASE_URL,
-  FIGMA_TOKEN_HEADER,
+  egressNeedsProxyAdapter,
   FIGMA_TOKEN_ENV_VARS,
-  resolveFigmaToken,
+  FIGMA_TOKEN_HEADER,
+  FigmaApiClient,
   resolveBaseUrl,
   resolveEgress,
-  egressNeedsProxyAdapter,
-} from './client/index.js';
-export type { EgressConfig } from './client/index.js';
-
-// Utilities
-export { RateLimiter, RequestCache, RetryHandler } from './utils/index.js';
-
+  resolveFigmaToken,
+} from "./client/index.js";
+// Core
+export { FetchAdapter } from "./core/FetchAdapter.js";
 // Errors
 export {
-  FigmaFetchError,
-  FigmaApiError,
-  NetworkError,
-  TimeoutError,
-  RateLimitError,
   AuthenticationError,
-  ValidationError,
-  NotFoundError,
-  ServerError,
   createErrorFromResponse,
+  FigmaApiError,
+  FigmaFetchError,
   isRetryableError,
-} from './errors/index.js';
-
-// Testing rail (offline check + fixture-serving fake client)
-export { FakeFigmaClient, isOffline } from './testing/index.js';
-export type { FakeFigmaClientConfig, FakeRoute, RecordedCall } from './testing/index.js';
-
+  NetworkError,
+  NotFoundError,
+  RateLimitError,
+  ServerError,
+  TimeoutError,
+  ValidationError,
+} from "./errors/index.js";
 // zod boundary-validation schemas (opt-in)
 export {
   FileKeySchema,
+  IdSchema,
+  ImageFormatSchema,
+  ImageScaleSchema,
   NodeIdSchema,
   NodeIdsSchema,
-  ImageScaleSchema,
-  ImageFormatSchema,
-  IdSchema,
   parseOrThrow,
   safeParse,
   setNodeTreeValidator,
   validateNodeTree,
-} from './schemas/index.js';
-
+} from "./schemas/index.js";
+export type {
+  FakeFigmaClientConfig,
+  FakeRoute,
+  RecordedCall,
+} from "./testing/index.js";
+// Testing rail (offline check + fixture-serving fake client)
+export { FakeFigmaClient, isOffline } from "./testing/index.js";
 // Types
 export type {
-  HttpMethod,
-  Headers,
+  CacheConfig,
+  CacheEntry,
+  CacheStats,
+  ClientStats,
+  ErrorCode,
+  ErrorInterceptor,
   FetchRequest,
   FetchResponse,
+  FigmaApiClientConfig,
+  FigmaErrorMeta,
+  Headers,
+  HealthCheckResult,
+  HttpMethod,
   Logger,
+  ProxyConfig,
   RateLimiterConfig,
   RateLimiterStats,
-  CacheConfig,
-  CacheStats,
-  CacheEntry,
-  RetryConfig,
-  RetryContext,
-  ProxyConfig,
-  FigmaApiClientConfig,
   RequestInterceptor,
   ResponseInterceptor,
-  ErrorInterceptor,
-  ClientStats,
-  HealthCheckResult,
-  FigmaErrorMeta,
-  ErrorCode,
-} from './types/index.js';
+  RetryConfig,
+  RetryContext,
+} from "./types/index.js";
+// Utilities
+export { RateLimiter, RequestCache, RetryHandler } from "./utils/index.js";

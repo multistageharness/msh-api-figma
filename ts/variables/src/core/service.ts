@@ -3,16 +3,7 @@
  * Contains business logic and orchestration for Figma Variables operations
  */
 
-import {
-  ValidationError,
-  NotFoundError,
-  ApiError,
-  VariableError,
-  CollectionError,
-  VariableLimitError,
-  ModeLimitError,
-  AliasError
-} from './exceptions.js';
+import { AliasError, NotFoundError, ValidationError } from "./exceptions.js";
 
 export class FigmaVariablesService {
   fetcher: any;
@@ -26,7 +17,12 @@ export class FigmaVariablesService {
     maxModeNameLength: number;
     maxVariableNameLength: number;
   };
-  variableTypes!: { BOOLEAN: string; FLOAT: string; STRING: string; COLOR: string };
+  variableTypes!: {
+    BOOLEAN: string;
+    FLOAT: string;
+    STRING: string;
+    COLOR: string;
+  };
   actions!: { CREATE: string; UPDATE: string; DELETE: string };
 
   /**
@@ -35,9 +31,15 @@ export class FigmaVariablesService {
    * @param {object} [options.validator=null] - Validator instance
    * @param {object} [options.logger=console] - Logger instance
    */
-  constructor({ fetcher, validator = null, logger = console }: { fetcher?: any; validator?: any; logger?: any } = {}) {
+  constructor({
+    fetcher,
+    validator = null,
+    logger = console,
+  }: { fetcher?: any; validator?: any; logger?: any } = {}) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
 
     this.fetcher = fetcher;
@@ -50,27 +52,27 @@ export class FigmaVariablesService {
   _initializeDefaults(): void {
     this.cacheConfig = {
       ttl: 5 * 60 * 1000, // 5 minutes
-      maxSize: 100
+      maxSize: 100,
     };
 
     this.limits = {
       maxVariablesPerCollection: 5000,
       maxModesPerCollection: 40,
       maxModeNameLength: 40,
-      maxVariableNameLength: 255
+      maxVariableNameLength: 255,
     };
 
     this.variableTypes = {
-      BOOLEAN: 'BOOLEAN',
-      FLOAT: 'FLOAT',
-      STRING: 'STRING',
-      COLOR: 'COLOR'
+      BOOLEAN: "BOOLEAN",
+      FLOAT: "FLOAT",
+      STRING: "STRING",
+      COLOR: "COLOR",
     };
 
     this.actions = {
-      CREATE: 'CREATE',
-      UPDATE: 'UPDATE',
-      DELETE: 'DELETE'
+      CREATE: "CREATE",
+      UPDATE: "UPDATE",
+      DELETE: "DELETE",
     };
   }
 
@@ -82,19 +84,21 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Variables and collections with metadata
    */
-  async getLocalVariables(fileKey: string, options: any = {}): Promise<any> {
+  async getLocalVariables(fileKey: string, _options: any = {}): Promise<any> {
     if (!fileKey) {
-      throw new ValidationError('File key is required', 'fileKey', fileKey);
+      throw new ValidationError("File key is required", "fileKey", fileKey);
     }
 
     try {
       // GET /v1/files/:key/variables/local (generic verb, R1)
-      const response = await this.fetcher.get(`/v1/files/${fileKey}/variables/local`);
+      const response = await this.fetcher.get(
+        `/v1/files/${fileKey}/variables/local`,
+      );
 
       const result = {
         variables: response.meta?.variables || {},
         variableCollections: response.meta?.variableCollections || {},
-        stats: this._calculateVariableStats(response.meta)
+        stats: this._calculateVariableStats(response.meta),
       };
 
       // Cache the processed result
@@ -102,8 +106,8 @@ export class FigmaVariablesService {
 
       return result;
     } catch (error: any) {
-      if (error.code === 'NOT_FOUND') {
-        throw new NotFoundError('File', fileKey);
+      if (error.code === "NOT_FOUND") {
+        throw new NotFoundError("File", fileKey);
       }
       throw error;
     }
@@ -115,19 +119,24 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Published variables and collections
    */
-  async getPublishedVariables(fileKey: string, options: any = {}): Promise<any> {
+  async getPublishedVariables(
+    fileKey: string,
+    _options: any = {},
+  ): Promise<any> {
     if (!fileKey) {
-      throw new ValidationError('File key is required', 'fileKey', fileKey);
+      throw new ValidationError("File key is required", "fileKey", fileKey);
     }
 
     try {
       // GET /v1/files/:key/variables/published (generic verb, R1)
-      const response = await this.fetcher.get(`/v1/files/${fileKey}/variables/published`);
+      const response = await this.fetcher.get(
+        `/v1/files/${fileKey}/variables/published`,
+      );
 
       const result = {
         variables: response.meta?.variables || {},
         variableCollections: response.meta?.variableCollections || {},
-        stats: this._calculateVariableStats(response.meta)
+        stats: this._calculateVariableStats(response.meta),
       };
 
       // Cache the processed result
@@ -135,8 +144,8 @@ export class FigmaVariablesService {
 
       return result;
     } catch (error: any) {
-      if (error.code === 'NOT_FOUND') {
-        throw new NotFoundError('File', fileKey);
+      if (error.code === "NOT_FOUND") {
+        throw new NotFoundError("File", fileKey);
       }
       throw error;
     }
@@ -149,16 +158,24 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Variable details
    */
-  async getVariable(fileKey: string, variableId: string, options: any = {}): Promise<any> {
+  async getVariable(
+    fileKey: string,
+    variableId: string,
+    options: any = {},
+  ): Promise<any> {
     if (!fileKey || !variableId) {
-      throw new ValidationError('File key and variable ID are required', 'params', { fileKey, variableId });
+      throw new ValidationError(
+        "File key and variable ID are required",
+        "params",
+        { fileKey, variableId },
+      );
     }
 
     const variables = await this.getLocalVariables(fileKey, options);
     const variable = variables.variables[variableId];
 
     if (!variable) {
-      throw new NotFoundError('Variable', variableId);
+      throw new NotFoundError("Variable", variableId);
     }
 
     return variable;
@@ -171,16 +188,24 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Collection details
    */
-  async getVariableCollection(fileKey: string, collectionId: string, options: any = {}): Promise<any> {
+  async getVariableCollection(
+    fileKey: string,
+    collectionId: string,
+    options: any = {},
+  ): Promise<any> {
     if (!fileKey || !collectionId) {
-      throw new ValidationError('File key and collection ID are required', 'params', { fileKey, collectionId });
+      throw new ValidationError(
+        "File key and collection ID are required",
+        "params",
+        { fileKey, collectionId },
+      );
     }
 
     const variables = await this.getLocalVariables(fileKey, options);
     const collection = variables.variableCollections[collectionId];
 
     if (!collection) {
-      throw new NotFoundError('Variable collection', collectionId);
+      throw new NotFoundError("Variable collection", collectionId);
     }
 
     return collection;
@@ -195,32 +220,41 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Creation result with real ID mapping
    */
-  async createVariableCollection(fileKey: string, collectionData: any, options: any = {}): Promise<any> {
+  async createVariableCollection(
+    fileKey: string,
+    collectionData: any,
+    _options: any = {},
+  ): Promise<any> {
     if (!fileKey || !collectionData) {
-      throw new ValidationError('File key and collection data are required');
+      throw new ValidationError("File key and collection data are required");
     }
 
     this._validateCollectionData(collectionData);
 
     const tempId = collectionData.id || `temp_collection_${Date.now()}`;
     const changes: any = {
-      variableCollections: [{
-        action: this.actions.CREATE,
-        id: tempId,
-        name: collectionData.name,
-        initialModeId: collectionData.initialModeId || `temp_mode_${Date.now()}`,
-        ...collectionData
-      }]
+      variableCollections: [
+        {
+          action: this.actions.CREATE,
+          id: tempId,
+          name: collectionData.name,
+          initialModeId:
+            collectionData.initialModeId || `temp_mode_${Date.now()}`,
+          ...collectionData,
+        },
+      ],
     };
 
     // Add initial mode if specified
     if (collectionData.initialMode) {
-      changes.variableModes = [{
-        action: this.actions.CREATE,
-        id: changes.variableCollections[0].initialModeId,
-        name: collectionData.initialMode.name || 'Mode 1',
-        variableCollectionId: tempId
-      }];
+      changes.variableModes = [
+        {
+          action: this.actions.CREATE,
+          id: changes.variableCollections[0].initialModeId,
+          name: collectionData.initialMode.name || "Mode 1",
+          variableCollectionId: tempId,
+        },
+      ];
     }
 
     // POST /v1/files/:key/variables — create/modify/delete (generic verb, R1)
@@ -234,32 +268,40 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Creation result with real ID mapping
    */
-  async createVariable(fileKey: string, variableData: any, options: any = {}): Promise<any> {
+  async createVariable(
+    fileKey: string,
+    variableData: any,
+    _options: any = {},
+  ): Promise<any> {
     if (!fileKey || !variableData) {
-      throw new ValidationError('File key and variable data are required');
+      throw new ValidationError("File key and variable data are required");
     }
 
     this._validateVariableData(variableData);
 
     const tempId = variableData.id || `temp_variable_${Date.now()}`;
     const changes: any = {
-      variables: [{
-        action: this.actions.CREATE,
-        id: tempId,
-        name: variableData.name,
-        variableCollectionId: variableData.variableCollectionId,
-        resolvedType: variableData.resolvedType || this.variableTypes.STRING,
-        ...variableData
-      }]
+      variables: [
+        {
+          action: this.actions.CREATE,
+          id: tempId,
+          name: variableData.name,
+          variableCollectionId: variableData.variableCollectionId,
+          resolvedType: variableData.resolvedType || this.variableTypes.STRING,
+          ...variableData,
+        },
+      ],
     };
 
     // Add variable mode values if provided
     if (variableData.values) {
-      changes.variableModeValues = Object.entries(variableData.values).map(([modeId, value]) => ({
-        variableId: tempId,
-        modeId,
-        value
-      }));
+      changes.variableModeValues = Object.entries(variableData.values).map(
+        ([modeId, value]) => ({
+          variableId: tempId,
+          modeId,
+          value,
+        }),
+      );
     }
 
     // POST /v1/files/:key/variables — create/modify/delete (generic verb, R1)
@@ -274,29 +316,38 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Update result
    */
-  async updateVariable(fileKey: string, variableId: string, updates: any, options: any = {}): Promise<any> {
+  async updateVariable(
+    fileKey: string,
+    variableId: string,
+    updates: any,
+    options: any = {},
+  ): Promise<any> {
     if (!fileKey || !variableId) {
-      throw new ValidationError('File key and variable ID are required');
+      throw new ValidationError("File key and variable ID are required");
     }
 
     // Verify variable exists
     await this.getVariable(fileKey, variableId, options);
 
     const changes: any = {
-      variables: [{
-        action: this.actions.UPDATE,
-        id: variableId,
-        ...updates
-      }]
+      variables: [
+        {
+          action: this.actions.UPDATE,
+          id: variableId,
+          ...updates,
+        },
+      ],
     };
 
     // Handle value updates
     if (updates.values) {
-      changes.variableModeValues = Object.entries(updates.values).map(([modeId, value]) => ({
-        variableId,
-        modeId,
-        value
-      }));
+      changes.variableModeValues = Object.entries(updates.values).map(
+        ([modeId, value]) => ({
+          variableId,
+          modeId,
+          value,
+        }),
+      );
       delete changes.variables[0].values;
     }
 
@@ -311,19 +362,25 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Deletion result
    */
-  async deleteVariable(fileKey: string, variableId: string, options: any = {}): Promise<any> {
+  async deleteVariable(
+    fileKey: string,
+    variableId: string,
+    options: any = {},
+  ): Promise<any> {
     if (!fileKey || !variableId) {
-      throw new ValidationError('File key and variable ID are required');
+      throw new ValidationError("File key and variable ID are required");
     }
 
     // Verify variable exists
     await this.getVariable(fileKey, variableId, options);
 
     const changes = {
-      variables: [{
-        action: this.actions.DELETE,
-        id: variableId
-      }]
+      variables: [
+        {
+          action: this.actions.DELETE,
+          id: variableId,
+        },
+      ],
     };
 
     // POST /v1/files/:key/variables — create/modify/delete (generic verb, R1)
@@ -339,25 +396,39 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Alias creation result
    */
-  async createVariableAlias(fileKey: string, aliasVariableId: string, targetVariableId: string, modeId: string, options: any = {}): Promise<any> {
+  async createVariableAlias(
+    fileKey: string,
+    aliasVariableId: string,
+    targetVariableId: string,
+    modeId: string,
+    _options: any = {},
+  ): Promise<any> {
     if (!fileKey || !aliasVariableId || !targetVariableId || !modeId) {
-      throw new ValidationError('All parameters are required for alias creation');
+      throw new ValidationError(
+        "All parameters are required for alias creation",
+      );
     }
 
     // Validate alias won't create cycle
     if (aliasVariableId === targetVariableId) {
-      throw new AliasError('Variable cannot be aliased to itself', aliasVariableId, targetVariableId);
+      throw new AliasError(
+        "Variable cannot be aliased to itself",
+        aliasVariableId,
+        targetVariableId,
+      );
     }
 
     const changes = {
-      variableModeValues: [{
-        variableId: aliasVariableId,
-        modeId,
-        value: {
-          type: 'VARIABLE_ALIAS',
-          id: targetVariableId
-        }
-      }]
+      variableModeValues: [
+        {
+          variableId: aliasVariableId,
+          modeId,
+          value: {
+            type: "VARIABLE_ALIAS",
+            id: targetVariableId,
+          },
+        },
+      ],
     };
 
     // POST /v1/files/:key/variables — create/modify/delete (generic verb, R1)
@@ -373,9 +444,19 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Batch creation result
    */
-  async batchCreateVariables(fileKey: string, variablesData: any[], options: any = {}): Promise<any> {
-    if (!fileKey || !Array.isArray(variablesData) || variablesData.length === 0) {
-      throw new ValidationError('File key and non-empty variables array are required');
+  async batchCreateVariables(
+    fileKey: string,
+    variablesData: any[],
+    _options: any = {},
+  ): Promise<any> {
+    if (
+      !fileKey ||
+      !Array.isArray(variablesData) ||
+      variablesData.length === 0
+    ) {
+      throw new ValidationError(
+        "File key and non-empty variables array are required",
+      );
     }
 
     // Validate each variable
@@ -383,7 +464,11 @@ export class FigmaVariablesService {
       try {
         this._validateVariableData(varData);
       } catch (error: any) {
-        throw new ValidationError(`Variable at index ${index}: ${error.message}`, 'variables', varData);
+        throw new ValidationError(
+          `Variable at index ${index}: ${error.message}`,
+          "variables",
+          varData,
+        );
       }
     });
 
@@ -394,9 +479,9 @@ export class FigmaVariablesService {
         name: varData.name,
         variableCollectionId: varData.variableCollectionId,
         resolvedType: varData.resolvedType || this.variableTypes.STRING,
-        ...varData
+        ...varData,
       })),
-      variableModeValues: []
+      variableModeValues: [],
     };
 
     // Add variable mode values
@@ -407,7 +492,7 @@ export class FigmaVariablesService {
           changes.variableModeValues.push({
             variableId,
             modeId,
-            value
+            value,
           });
         });
       }
@@ -424,9 +509,13 @@ export class FigmaVariablesService {
    * @param {Object} options - Request options
    * @returns {Promise<Array>} Matching variables
    */
-  async searchVariables(fileKey: string, searchCriteria: any, options: any = {}): Promise<any[]> {
+  async searchVariables(
+    fileKey: string,
+    searchCriteria: any,
+    options: any = {},
+  ): Promise<any[]> {
     if (!fileKey || !searchCriteria) {
-      throw new ValidationError('File key and search criteria are required');
+      throw new ValidationError("File key and search criteria are required");
     }
 
     const { variables } = await this.getLocalVariables(fileKey, options);
@@ -435,15 +524,24 @@ export class FigmaVariablesService {
     Object.entries(variables).forEach(([id, variable]: [string, any]) => {
       let matches = true;
 
-      if (searchCriteria.name && !variable.name.toLowerCase().includes(searchCriteria.name.toLowerCase())) {
+      if (
+        searchCriteria.name &&
+        !variable.name.toLowerCase().includes(searchCriteria.name.toLowerCase())
+      ) {
         matches = false;
       }
 
-      if (searchCriteria.type && variable.resolvedType !== searchCriteria.type) {
+      if (
+        searchCriteria.type &&
+        variable.resolvedType !== searchCriteria.type
+      ) {
         matches = false;
       }
 
-      if (searchCriteria.collectionId && variable.variableCollectionId !== searchCriteria.collectionId) {
+      if (
+        searchCriteria.collectionId &&
+        variable.variableCollectionId !== searchCriteria.collectionId
+      ) {
         matches = false;
       }
 
@@ -462,12 +560,20 @@ export class FigmaVariablesService {
    * @param {Object} collectionData - Collection data to validate
    */
   _validateCollectionData(collectionData: any): void {
-    if (!collectionData.name || typeof collectionData.name !== 'string') {
-      throw new ValidationError('Collection name is required and must be a string', 'name', collectionData.name);
+    if (!collectionData.name || typeof collectionData.name !== "string") {
+      throw new ValidationError(
+        "Collection name is required and must be a string",
+        "name",
+        collectionData.name,
+      );
     }
 
     if (collectionData.name.length > 255) {
-      throw new ValidationError('Collection name cannot exceed 255 characters', 'name', collectionData.name);
+      throw new ValidationError(
+        "Collection name cannot exceed 255 characters",
+        "name",
+        collectionData.name,
+      );
     }
   }
 
@@ -476,34 +582,49 @@ export class FigmaVariablesService {
    * @param {Object} variableData - Variable data to validate
    */
   _validateVariableData(variableData: any): void {
-    if (!variableData.name || typeof variableData.name !== 'string') {
-      throw new ValidationError('Variable name is required and must be a string', 'name', variableData.name);
+    if (!variableData.name || typeof variableData.name !== "string") {
+      throw new ValidationError(
+        "Variable name is required and must be a string",
+        "name",
+        variableData.name,
+      );
     }
 
     if (variableData.name.length > this.limits.maxVariableNameLength) {
       throw new ValidationError(
         `Variable name cannot exceed ${this.limits.maxVariableNameLength} characters`,
-        'name',
-        variableData.name
+        "name",
+        variableData.name,
       );
     }
 
     if (!variableData.variableCollectionId) {
-      throw new ValidationError('Variable collection ID is required', 'variableCollectionId', variableData.variableCollectionId);
+      throw new ValidationError(
+        "Variable collection ID is required",
+        "variableCollectionId",
+        variableData.variableCollectionId,
+      );
     }
 
-    if (variableData.resolvedType && !Object.values(this.variableTypes).includes(variableData.resolvedType)) {
+    if (
+      variableData.resolvedType &&
+      !Object.values(this.variableTypes).includes(variableData.resolvedType)
+    ) {
       throw new ValidationError(
-        `Invalid variable type. Must be one of: ${Object.values(this.variableTypes).join(', ')}`,
-        'resolvedType',
-        variableData.resolvedType
+        `Invalid variable type. Must be one of: ${Object.values(this.variableTypes).join(", ")}`,
+        "resolvedType",
+        variableData.resolvedType,
       );
     }
 
     // Validate special characters in name
     const invalidChars = /[.{}]/;
     if (invalidChars.test(variableData.name)) {
-      throw new ValidationError('Variable name cannot contain special characters: . { }', 'name', variableData.name);
+      throw new ValidationError(
+        "Variable name cannot contain special characters: . { }",
+        "name",
+        variableData.name,
+      );
     }
   }
 
@@ -522,12 +643,12 @@ export class FigmaVariablesService {
       variableCount: Object.keys(variables).length,
       collectionCount: Object.keys(collections).length,
       variablesByType: {},
-      variablesByCollection: {}
+      variablesByCollection: {},
     };
 
     // Count variables by type
     Object.values(variables).forEach((variable: any) => {
-      const type = variable.resolvedType || 'UNKNOWN';
+      const type = variable.resolvedType || "UNKNOWN";
       stats.variablesByType[type] = (stats.variablesByType[type] || 0) + 1;
     });
 
@@ -535,7 +656,8 @@ export class FigmaVariablesService {
     Object.values(variables).forEach((variable: any) => {
       const collectionId = variable.variableCollectionId;
       if (collectionId) {
-        stats.variablesByCollection[collectionId] = (stats.variablesByCollection[collectionId] || 0) + 1;
+        stats.variablesByCollection[collectionId] =
+          (stats.variablesByCollection[collectionId] || 0) + 1;
       }
     });
 
@@ -564,7 +686,7 @@ export class FigmaVariablesService {
 
     this._cache.set(key, {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -581,7 +703,7 @@ export class FigmaVariablesService {
       cacheSize: this._cache.size,
       limits: this.limits,
       variableTypes: this.variableTypes,
-      actions: this.actions
+      actions: this.actions,
     };
   }
 }

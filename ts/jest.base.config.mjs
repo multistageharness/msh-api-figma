@@ -9,11 +9,11 @@
  */
 
 export default {
-  testEnvironment: 'node',
+  testEnvironment: "node",
   // No transform: tests are native ESM importing built .mjs.
   transform: {},
-  moduleFileExtensions: ['mjs', 'js', 'json'],
+  moduleFileExtensions: ["mjs", "js", "json"],
   // Each package config narrows testMatch to its own tests/ dir.
-  testMatch: ['<rootDir>/tests/**/*.test.mjs'],
+  testMatch: ["<rootDir>/tests/**/*.test.mjs"],
   verbose: true,
 };

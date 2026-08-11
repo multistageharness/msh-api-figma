@@ -3,7 +3,7 @@
  * Allows different fetch implementations (native fetch, undici, axios, etc.)
  */
 
-import { FetchRequest, FetchResponse } from '../types/index.js';
+import type { FetchRequest, FetchResponse } from "../types/index.js";
 
 /**
  * Abstract FetchAdapter class
@@ -55,14 +55,18 @@ export abstract class FetchAdapter {
    * @returns Parsed response data
    */
   protected async parseResponseData(
-    response: { json: () => Promise<any>; text: () => Promise<string>; arrayBuffer: () => Promise<ArrayBuffer> },
-    contentType: string | null
+    response: {
+      json: () => Promise<any>;
+      text: () => Promise<string>;
+      arrayBuffer: () => Promise<ArrayBuffer>;
+    },
+    contentType: string | null,
   ): Promise<any> {
     if (!contentType) {
       return null;
     }
 
-    if (contentType.includes('application/json')) {
+    if (contentType.includes("application/json")) {
       try {
         return await response.json();
       } catch {
@@ -70,7 +74,7 @@ export abstract class FetchAdapter {
       }
     }
 
-    if (contentType.includes('text/')) {
+    if (contentType.includes("text/")) {
       return await response.text();
     }
 
@@ -88,7 +92,7 @@ export abstract class FetchAdapter {
     }
 
     // If headers has entries method (like native Headers)
-    if (typeof headers.entries === 'function') {
+    if (typeof headers.entries === "function") {
       const obj: Record<string, string> = {};
       for (const [key, value] of headers.entries()) {
         obj[key] = value;
@@ -97,7 +101,7 @@ export abstract class FetchAdapter {
     }
 
     // If headers is already a plain object
-    if (typeof headers === 'object') {
+    if (typeof headers === "object") {
       return headers as Record<string, string>;
     }
 

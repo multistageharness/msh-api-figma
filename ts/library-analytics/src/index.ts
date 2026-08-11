@@ -5,17 +5,15 @@
 
 // Error exports
 export {
-  LibraryAnalyticsError,
   LibraryAnalyticsAuthError,
+  LibraryAnalyticsError,
+  LibraryAnalyticsRateLimitError,
   LibraryAnalyticsValidationError,
-  LibraryAnalyticsRateLimitError
-} from './errors.js';
-
-// Service export
-export { FigmaLibraryAnalyticsService } from './service.js';
-
+} from "./errors.js";
 // SDK exports
-export { FigmaLibraryAnalyticsSDK, default } from './sdk.js';
+export { default, FigmaLibraryAnalyticsSDK } from "./sdk.js";
+// Service export
+export { FigmaLibraryAnalyticsService } from "./service.js";
 
 // Version info
-export const VERSION = '1.0.0';
+export const VERSION = "1.0.0";

@@ -3,28 +3,24 @@
  * Exports all public APIs and utilities
  */
 
-// Core components
-export { default as FigmaProjectsService } from './core/service.js';
-
-// High-level SDK
-export { default as FigmaProjectsSDK } from './interfaces/sdk.js';
-
 // Exception classes
 export {
-  FigmaProjectsError,
   AuthenticationError,
-  RateLimitError,
+  ConfigurationError,
+  createErrorFromResponse,
+  FigmaProjectsError,
+  getRetryDelay,
+  HttpError,
+  isRetryableError,
   NetworkError,
-  ValidationError,
   NotFoundError,
   PermissionError,
-  HttpError,
-  ConfigurationError,
+  RateLimitError,
   TimeoutError,
-  createErrorFromResponse,
-  isRetryableError,
-  getRetryDelay
-} from './core/exceptions.js';
-
+  ValidationError,
+} from "./core/exceptions.js";
+// Core components
+export { default as FigmaProjectsService } from "./core/service.js";
+// High-level SDK
 // Default export is the SDK for convenience
-export { default } from './interfaces/sdk.js';
+export { default as FigmaProjectsSDK, default } from "./interfaces/sdk.js";

@@ -3,8 +3,8 @@
  * Implements exponential backoff with jitter
  */
 
-import { RetryConfig, RetryContext } from '../types/index.js';
-import { isRetryableError } from '../errors/index.js';
+import { isRetryableError } from "../errors/index.js";
+import type { RetryConfig, RetryContext } from "../types/index.js";
 
 /**
  * RetryHandler class
@@ -24,7 +24,9 @@ export class RetryHandler {
     this.maxDelay = config.maxDelay || 30000;
     this.backoffFactor = config.backoffFactor || 2;
     this.jitterFactor = config.jitterFactor || 0.1;
-    this.retryableStatuses = config.retryableStatuses || [429, 500, 502, 503, 504];
+    this.retryableStatuses = config.retryableStatuses || [
+      429, 500, 502, 503, 504,
+    ];
   }
 
   /**
@@ -33,8 +35,8 @@ export class RetryHandler {
   calculateDelay(attempt: number): number {
     // Calculate exponential backoff
     const baseDelay = Math.min(
-      this.initialDelay * Math.pow(this.backoffFactor, attempt),
-      this.maxDelay
+      this.initialDelay * this.backoffFactor ** attempt,
+      this.maxDelay,
     );
 
     // Add jitter to prevent thundering herd
@@ -74,7 +76,7 @@ export class RetryHandler {
    */
   async execute<T>(
     fn: () => Promise<T>,
-    onRetry?: (attempt: number, delay: number, error: Error) => void
+    onRetry?: (attempt: number, delay: number, error: Error) => void,
   ): Promise<T> {
     let lastError: Error;
     let attempt = 0;
@@ -113,7 +115,7 @@ export class RetryHandler {
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

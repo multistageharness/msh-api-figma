@@ -15,13 +15,13 @@
  */
 
 import {
-  ValidationError,
+  AuthorizationError,
   CommentError,
   CommentValidationError,
   FileError,
   NotFoundError,
-  AuthorizationError
-} from './exceptions.js';
+  ValidationError,
+} from "./exceptions.js";
 
 /**
  * Core service for Figma Comments business logic
@@ -40,10 +40,12 @@ export class FigmaCommentsService {
   constructor({
     fetcher,
     logger = console,
-    validateInputs = true
+    validateInputs = true,
   }: { fetcher?: any; logger?: any; validateInputs?: boolean } = {}) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
 
     this.fetcher = fetcher;
@@ -57,7 +59,10 @@ export class FigmaCommentsService {
    * @param {Object} options - Request options
    * @returns {Promise<Array>} Array of comments
    */
-  async getFileComments(fileKey: string, options: Record<string, any> = {}): Promise<any[]> {
+  async getFileComments(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any[]> {
     this._validateFileKey(fileKey);
 
     const params: Record<string, any> = {};
@@ -66,16 +71,24 @@ export class FigmaCommentsService {
     }
 
     try {
-      const response = await this.fetcher.request(`/v1/files/${fileKey}/comments`, {
-        params
-      });
+      const response = await this.fetcher.request(
+        `/v1/files/${fileKey}/comments`,
+        {
+          params,
+        },
+      );
 
       const comments = response.comments || [];
-      this.logger.debug(`Retrieved ${comments.length} comments for file ${fileKey}`);
+      this.logger.debug(
+        `Retrieved ${comments.length} comments for file ${fileKey}`,
+      );
 
       return comments;
     } catch (error: any) {
-      throw new FileError(`Failed to get comments for file: ${error.message}`, fileKey);
+      throw new FileError(
+        `Failed to get comments for file: ${error.message}`,
+        fileKey,
+      );
     }
   }
 
@@ -85,12 +98,15 @@ export class FigmaCommentsService {
    * @param {Object} commentData - Comment data
    * @returns {Promise<Object>} Created comment
    */
-  async addComment(fileKey: string, commentData: Record<string, any>): Promise<any> {
+  async addComment(
+    fileKey: string,
+    commentData: Record<string, any>,
+  ): Promise<any> {
     this._validateFileKey(fileKey);
     this._validateCommentData(commentData);
 
     const payload: Record<string, any> = {
-      message: commentData.message
+      message: commentData.message,
     };
 
     // Add positioning information if provided
@@ -104,10 +120,13 @@ export class FigmaCommentsService {
     }
 
     try {
-      const comment = await this.fetcher.request(`/v1/files/${fileKey}/comments`, {
-        method: 'POST',
-        body: payload
-      });
+      const comment = await this.fetcher.request(
+        `/v1/files/${fileKey}/comments`,
+        {
+          method: "POST",
+          body: payload,
+        },
+      );
 
       this.logger.debug(`Created comment ${comment.id} in file ${fileKey}`);
       return comment;
@@ -129,13 +148,16 @@ export class FigmaCommentsService {
     try {
       const result = await this.fetcher.request(
         `/v1/files/${fileKey}/comments/${commentId}`,
-        { method: 'DELETE' }
+        { method: "DELETE" },
       );
 
       this.logger.debug(`Deleted comment ${commentId} from file ${fileKey}`);
       return result;
     } catch (error: any) {
-      throw new CommentError(`Failed to delete comment: ${error.message}`, commentId);
+      throw new CommentError(
+        `Failed to delete comment: ${error.message}`,
+        commentId,
+      );
     }
   }
 
@@ -154,19 +176,28 @@ export class FigmaCommentsService {
 
     try {
       const response = await this.fetcher.request(
-        `/v1/files/${fileKey}/comments/${commentId}/reactions`
+        `/v1/files/${fileKey}/comments/${commentId}/reactions`,
       );
 
-      this.logger.debug(`Retrieved reactions for comment ${commentId} in file ${fileKey}`);
+      this.logger.debug(
+        `Retrieved reactions for comment ${commentId} in file ${fileKey}`,
+      );
       return response;
     } catch (error: any) {
       if (error.status === 403) {
         throw new AuthorizationError(
-          'Insufficient permissions to read comment reactions. Required scopes: file_comments:read, files:read',
-          { fileKey, commentId, requiredScopes: ['file_comments:read', 'files:read'] }
+          "Insufficient permissions to read comment reactions. Required scopes: file_comments:read, files:read",
+          {
+            fileKey,
+            commentId,
+            requiredScopes: ["file_comments:read", "files:read"],
+          },
         );
       }
-      throw new CommentError(`Failed to get comment reactions: ${error.message}`, commentId);
+      throw new CommentError(
+        `Failed to get comment reactions: ${error.message}`,
+        commentId,
+      );
     }
   }
 
@@ -178,7 +209,11 @@ export class FigmaCommentsService {
    * @param {string} emoji - Reaction emoji (e.g., '👍', '❤️', '😀')
    * @returns {Promise<Object>} Added reaction
    */
-  async addCommentReaction(fileKey: string, commentId: string, emoji: string): Promise<any> {
+  async addCommentReaction(
+    fileKey: string,
+    commentId: string,
+    emoji: string,
+  ): Promise<any> {
     this._validateFileKey(fileKey);
     this._validateCommentId(commentId);
     this._validateReactionEmoji(emoji);
@@ -189,21 +224,26 @@ export class FigmaCommentsService {
       const reaction = await this.fetcher.request(
         `/v1/files/${fileKey}/comments/${commentId}/reactions`,
         {
-          method: 'POST',
-          body: payload
-        }
+          method: "POST",
+          body: payload,
+        },
       );
 
-      this.logger.debug(`Added reaction "${emoji}" to comment ${commentId} in file ${fileKey}`);
+      this.logger.debug(
+        `Added reaction "${emoji}" to comment ${commentId} in file ${fileKey}`,
+      );
       return reaction;
     } catch (error: any) {
       if (error.status === 403) {
         throw new AuthorizationError(
-          'Insufficient permissions to add comment reactions. Required scope: file_comments:write',
-          { fileKey, commentId, requiredScopes: ['file_comments:write'] }
+          "Insufficient permissions to add comment reactions. Required scope: file_comments:write",
+          { fileKey, commentId, requiredScopes: ["file_comments:write"] },
         );
       }
-      throw new CommentError(`Failed to add reaction: ${error.message}`, commentId);
+      throw new CommentError(
+        `Failed to add reaction: ${error.message}`,
+        commentId,
+      );
     }
   }
 
@@ -215,7 +255,11 @@ export class FigmaCommentsService {
    * @param {string} emoji - Reaction emoji to remove
    * @returns {Promise<Object>} Deletion result
    */
-  async deleteCommentReaction(fileKey: string, commentId: string, emoji: string): Promise<any> {
+  async deleteCommentReaction(
+    fileKey: string,
+    commentId: string,
+    emoji: string,
+  ): Promise<any> {
     this._validateFileKey(fileKey);
     this._validateCommentId(commentId);
     this._validateReactionEmoji(emoji);
@@ -224,21 +268,26 @@ export class FigmaCommentsService {
       const result = await this.fetcher.request(
         `/v1/files/${fileKey}/comments/${commentId}/reactions`,
         {
-          method: 'DELETE',
-          body: { emoji }
-        }
+          method: "DELETE",
+          body: { emoji },
+        },
       );
 
-      this.logger.debug(`Deleted reaction "${emoji}" from comment ${commentId} in file ${fileKey}`);
+      this.logger.debug(
+        `Deleted reaction "${emoji}" from comment ${commentId} in file ${fileKey}`,
+      );
       return result;
     } catch (error: any) {
       if (error.status === 403) {
         throw new AuthorizationError(
-          'Insufficient permissions to delete comment reactions. Required scope: file_comments:write',
-          { fileKey, commentId, requiredScopes: ['file_comments:write'] }
+          "Insufficient permissions to delete comment reactions. Required scope: file_comments:write",
+          { fileKey, commentId, requiredScopes: ["file_comments:write"] },
         );
       }
-      throw new CommentError(`Failed to delete reaction: ${error.message}`, commentId);
+      throw new CommentError(
+        `Failed to delete reaction: ${error.message}`,
+        commentId,
+      );
     }
   }
 
@@ -249,7 +298,11 @@ export class FigmaCommentsService {
    * @param {string} emoji - Reaction emoji
    * @returns {Promise<Object>} Result with action taken (added/removed)
    */
-  async toggleCommentReaction(fileKey: string, commentId: string, emoji: string): Promise<any> {
+  async toggleCommentReaction(
+    fileKey: string,
+    commentId: string,
+    emoji: string,
+  ): Promise<any> {
     this._validateFileKey(fileKey);
     this._validateCommentId(commentId);
     this._validateReactionEmoji(emoji);
@@ -260,32 +313,39 @@ export class FigmaCommentsService {
       const currentUserId = await this._getCurrentUserId(); // Helper method to get current user
 
       // Check if current user has already reacted with this emoji
-      const existingReaction = reactions.reactions?.find((r: any) =>
-        r.emoji === emoji && r.user.id === currentUserId
+      const existingReaction = reactions.reactions?.find(
+        (r: any) => r.emoji === emoji && r.user.id === currentUserId,
       );
 
       if (existingReaction) {
         // Remove the reaction
         await this.deleteCommentReaction(fileKey, commentId, emoji);
         return {
-          action: 'removed',
+          action: "removed",
           emoji,
           commentId,
-          message: `Removed reaction "${emoji}" from comment ${commentId}`
+          message: `Removed reaction "${emoji}" from comment ${commentId}`,
         };
       } else {
         // Add the reaction
-        const reaction = await this.addCommentReaction(fileKey, commentId, emoji);
+        const reaction = await this.addCommentReaction(
+          fileKey,
+          commentId,
+          emoji,
+        );
         return {
-          action: 'added',
+          action: "added",
           emoji,
           commentId,
           reaction,
-          message: `Added reaction "${emoji}" to comment ${commentId}`
+          message: `Added reaction "${emoji}" to comment ${commentId}`,
         };
       }
     } catch (error: any) {
-      throw new CommentError(`Failed to toggle reaction: ${error.message}`, commentId);
+      throw new CommentError(
+        `Failed to toggle reaction: ${error.message}`,
+        commentId,
+      );
     }
   }
 
@@ -295,7 +355,10 @@ export class FigmaCommentsService {
    * @param {Object} options - Query options
    * @returns {Promise<Object>} Aggregated reaction data
    */
-  async getFileReactionSummary(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getFileReactionSummary(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     this._validateFileKey(fileKey);
 
     try {
@@ -306,7 +369,7 @@ export class FigmaCommentsService {
         topEmojis: [],
         commentReactionCounts: {},
         mostReactedComments: [],
-        userReactionActivity: {}
+        userReactionActivity: {},
       };
 
       // Process each comment to get reactions
@@ -314,7 +377,8 @@ export class FigmaCommentsService {
         try {
           const reactions = await this.getCommentReactions(fileKey, comment.id);
           if (reactions.reactions && reactions.reactions.length > 0) {
-            reactionSummary.commentReactionCounts[comment.id] = reactions.reactions.length;
+            reactionSummary.commentReactionCounts[comment.id] =
+              reactions.reactions.length;
 
             for (const reaction of reactions.reactions) {
               reactionSummary.totalReactions++;
@@ -327,16 +391,20 @@ export class FigmaCommentsService {
                 reactionSummary.userReactionActivity[userId] = {
                   user: reaction.user,
                   reactionCount: 0,
-                  emojisUsed: new Set()
+                  emojisUsed: new Set(),
                 };
               }
               reactionSummary.userReactionActivity[userId].reactionCount++;
-              reactionSummary.userReactionActivity[userId].emojisUsed.add(reaction.emoji);
+              reactionSummary.userReactionActivity[userId].emojisUsed.add(
+                reaction.emoji,
+              );
             }
           }
         } catch (error: any) {
           // Log but don't fail entire operation if individual comment reaction fetch fails
-          this.logger.warn(`Failed to get reactions for comment ${comment.id}: ${error.message}`);
+          this.logger.warn(
+            `Failed to get reactions for comment ${comment.id}: ${error.message}`,
+          );
         }
       }
 
@@ -347,26 +415,39 @@ export class FigmaCommentsService {
         .map(([emoji, count]) => ({ emoji, count }));
 
       // Find most reacted comments
-      reactionSummary.mostReactedComments = Object.entries(reactionSummary.commentReactionCounts)
+      reactionSummary.mostReactedComments = Object.entries(
+        reactionSummary.commentReactionCounts,
+      )
         .sort(([, a]: [string, any], [, b]: [string, any]) => b - a)
         .slice(0, options.topCount || 10)
         .map(([commentId, count]) => {
           const comment = comments.find((c: any) => c.id === commentId);
-          return { commentId, count, comment: comment ? {
-            message: comment.message.substring(0, 100),
-            user: comment.user?.handle || 'Unknown',
-            created_at: comment.created_at
-          } : null };
+          return {
+            commentId,
+            count,
+            comment: comment
+              ? {
+                  message: comment.message.substring(0, 100),
+                  user: comment.user?.handle || "Unknown",
+                  created_at: comment.created_at,
+                }
+              : null,
+          };
         });
 
       // Convert user activity Sets to arrays
-      Object.values(reactionSummary.userReactionActivity).forEach((activity: any) => {
-        activity.emojisUsed = Array.from(activity.emojisUsed);
-      });
+      Object.values(reactionSummary.userReactionActivity).forEach(
+        (activity: any) => {
+          activity.emojisUsed = Array.from(activity.emojisUsed);
+        },
+      );
 
       return reactionSummary;
     } catch (error: any) {
-      throw new FileError(`Failed to get reaction summary: ${error.message}`, fileKey);
+      throw new FileError(
+        `Failed to get reaction summary: ${error.message}`,
+        fileKey,
+      );
     }
   }
 
@@ -383,14 +464,17 @@ export class FigmaCommentsService {
     const rootComment = comments.find((c: any) => c.id === commentId);
 
     if (!rootComment) {
-      throw new NotFoundError('Comment', commentId);
+      throw new NotFoundError("Comment", commentId);
     }
 
     const replies = comments.filter((c: any) => c.parent_id === commentId);
 
     return {
       ...rootComment,
-      replies: replies.sort((a: any, b: any) => (new Date(a.created_at) as any) - (new Date(b.created_at) as any))
+      replies: replies.sort(
+        (a: any, b: any) =>
+          (new Date(a.created_at) as any) - (new Date(b.created_at) as any),
+      ),
     };
   }
 
@@ -401,7 +485,11 @@ export class FigmaCommentsService {
    * @param {string} message - Reply message
    * @returns {Promise<Object>} Created reply
    */
-  async replyToComment(fileKey: string, parentId: string, message: string): Promise<any> {
+  async replyToComment(
+    fileKey: string,
+    parentId: string,
+    message: string,
+  ): Promise<any> {
     return this.addComment(fileKey, { message, parentId });
   }
 
@@ -412,13 +500,18 @@ export class FigmaCommentsService {
    * @param {Object} options - Search options
    * @returns {Promise<Array>} Matching comments
    */
-  async searchComments(fileKey: string, query: string, options: Record<string, any> = {}): Promise<any[]> {
+  async searchComments(
+    fileKey: string,
+    query: string,
+    options: Record<string, any> = {},
+  ): Promise<any[]> {
     const comments = await this.getFileComments(fileKey);
     const lowerQuery = query.toLowerCase();
 
     const matches = comments.filter((comment: any) => {
       const messageMatch = comment.message.toLowerCase().includes(lowerQuery);
-      const userMatch = options.includeUsers &&
+      const userMatch =
+        options.includeUsers &&
         comment.user.handle.toLowerCase().includes(lowerQuery);
 
       return messageMatch || userMatch;
@@ -446,7 +539,10 @@ export class FigmaCommentsService {
     const comments = await this.getFileComments(fileKey);
     return comments
       .filter((c: any) => c.user.id === userId)
-      .sort((a: any, b: any) => (new Date(b.created_at) as any) - (new Date(a.created_at) as any));
+      .sort(
+        (a: any, b: any) =>
+          (new Date(b.created_at) as any) - (new Date(a.created_at) as any),
+      );
   }
 
   /**
@@ -458,7 +554,10 @@ export class FigmaCommentsService {
     const comments = await this.getFileComments(fileKey);
     return comments
       .filter((c: any) => !c.resolved_at)
-      .sort((a: any, b: any) => (new Date(b.created_at) as any) - (new Date(a.created_at) as any));
+      .sort(
+        (a: any, b: any) =>
+          (new Date(b.created_at) as any) - (new Date(a.created_at) as any),
+      );
   }
 
   /**
@@ -467,11 +566,11 @@ export class FigmaCommentsService {
    * @param {string} commentId - Comment ID
    * @returns {Promise<Object>} Updated comment info
    */
-  async resolveComment(fileKey: string, commentId: string): Promise<any> {
+  async resolveComment(_fileKey: string, commentId: string): Promise<any> {
     // Note: Figma API doesn't have a resolve endpoint
     // This would typically be implemented as a comment with special metadata
-    this.logger.warn('Comment resolution not supported by Figma API');
-    return { commentId, resolved: true, note: 'Simulated resolution' };
+    this.logger.warn("Comment resolution not supported by Figma API");
+    return { commentId, resolved: true, note: "Simulated resolution" };
   }
 
   /**
@@ -480,17 +579,20 @@ export class FigmaCommentsService {
    * @param {Array<string>} commentIds - Array of comment IDs
    * @returns {Promise<Object>} Batch deletion results
    */
-  async batchDeleteComments(fileKey: string, commentIds: string[]): Promise<any> {
+  async batchDeleteComments(
+    fileKey: string,
+    commentIds: string[],
+  ): Promise<any> {
     this._validateFileKey(fileKey);
 
     if (!Array.isArray(commentIds) || commentIds.length === 0) {
-      throw new ValidationError('commentIds must be a non-empty array');
+      throw new ValidationError("commentIds must be a non-empty array");
     }
 
     const results: Record<string, any> = {
       successful: [],
       failed: [],
-      total: commentIds.length
+      total: commentIds.length,
     };
 
     for (const commentId of commentIds) {
@@ -502,7 +604,9 @@ export class FigmaCommentsService {
       }
     }
 
-    this.logger.info(`Batch delete completed: ${results.successful.length}/${results.total} successful`);
+    this.logger.info(
+      `Batch delete completed: ${results.successful.length}/${results.total} successful`,
+    );
     return results;
   }
 
@@ -523,7 +627,7 @@ export class FigmaCommentsService {
       uniqueUsers: new Set(),
       oldestComment: null,
       newestComment: null,
-      averageLength: 0
+      averageLength: 0,
     };
 
     let totalLength = 0;
@@ -534,10 +638,16 @@ export class FigmaCommentsService {
       totalLength += comment.message.length;
 
       const createdAt = new Date(comment.created_at);
-      if (!stats.oldestComment || createdAt < new Date(stats.oldestComment.created_at)) {
+      if (
+        !stats.oldestComment ||
+        createdAt < new Date(stats.oldestComment.created_at)
+      ) {
         stats.oldestComment = comment;
       }
-      if (!stats.newestComment || createdAt > new Date(stats.newestComment.created_at)) {
+      if (
+        !stats.newestComment ||
+        createdAt > new Date(stats.newestComment.created_at)
+      ) {
         stats.newestComment = comment;
       }
 
@@ -548,14 +658,17 @@ export class FigmaCommentsService {
 
     // Count root comments with replies
     for (const rootComment of rootComments) {
-      const hasReplies = comments.some((c: any) => c.parent_id === rootComment.id);
+      const hasReplies = comments.some(
+        (c: any) => c.parent_id === rootComment.id,
+      );
       if (hasReplies) {
         stats.withReplies++;
       }
     }
 
     stats.uniqueUsers = stats.uniqueUsers.size;
-    stats.averageLength = comments.length > 0 ? Math.round(totalLength / comments.length) : 0;
+    stats.averageLength =
+      comments.length > 0 ? Math.round(totalLength / comments.length) : 0;
     stats.rootComments = rootComments.length;
 
     return stats;
@@ -567,18 +680,18 @@ export class FigmaCommentsService {
    * @param {string} format - Export format (json, csv, markdown)
    * @returns {Promise<string>} Exported data
    */
-  async exportComments(fileKey: string, format = 'json'): Promise<string> {
+  async exportComments(fileKey: string, format = "json"): Promise<string> {
     const comments = await this.getFileComments(fileKey);
 
     switch (format.toLowerCase()) {
-      case 'json':
+      case "json":
         return JSON.stringify(comments, null, 2);
 
-      case 'csv':
+      case "csv":
         return this._exportToCsv(comments);
 
-      case 'markdown':
-      case 'md':
+      case "markdown":
+      case "md":
         return this._exportToMarkdown(comments);
 
       default:
@@ -592,17 +705,20 @@ export class FigmaCommentsService {
    * @param {Array<Object>} comments - Array of comment data
    * @returns {Promise<Object>} Bulk creation results
    */
-  async bulkAddComments(fileKey: string, comments: Record<string, any>[]): Promise<any> {
+  async bulkAddComments(
+    fileKey: string,
+    comments: Record<string, any>[],
+  ): Promise<any> {
     this._validateFileKey(fileKey);
 
     if (!Array.isArray(comments) || comments.length === 0) {
-      throw new ValidationError('comments must be a non-empty array');
+      throw new ValidationError("comments must be a non-empty array");
     }
 
     const results: Record<string, any> = {
       successful: [],
       failed: [],
-      total: comments.length
+      total: comments.length,
     };
 
     for (const [index, commentData] of comments.entries()) {
@@ -614,7 +730,9 @@ export class FigmaCommentsService {
       }
     }
 
-    this.logger.info(`Bulk add completed: ${results.successful.length}/${results.total} successful`);
+    this.logger.info(
+      `Bulk add completed: ${results.successful.length}/${results.total} successful`,
+    );
     return results;
   }
 
@@ -631,7 +749,10 @@ export class FigmaCommentsService {
 
     return comments
       .filter((c: any) => new Date(c.created_at) >= cutoff)
-      .sort((a: any, b: any) => (new Date(b.created_at) as any) - (new Date(a.created_at) as any));
+      .sort(
+        (a: any, b: any) =>
+          (new Date(b.created_at) as any) - (new Date(a.created_at) as any),
+      );
   }
 
   /**
@@ -644,49 +765,71 @@ export class FigmaCommentsService {
     const comments = await this.getFileComments(fileKey);
     const resolvedComments = comments.filter((c: any) => c.resolved_at);
 
-    this.logger.warn('Comment archiving not supported by Figma API');
+    this.logger.warn("Comment archiving not supported by Figma API");
     return {
       archived: resolvedComments.length,
-      note: 'Simulated archiving - comments were not actually archived'
+      note: "Simulated archiving - comments were not actually archived",
     };
   }
 
   // Private validation methods
 
   _validateFileKey(fileKey: any): void {
-    if (!fileKey || typeof fileKey !== 'string') {
-      throw new ValidationError('fileKey must be a non-empty string', 'fileKey', fileKey);
+    if (!fileKey || typeof fileKey !== "string") {
+      throw new ValidationError(
+        "fileKey must be a non-empty string",
+        "fileKey",
+        fileKey,
+      );
     }
   }
 
   _validateCommentId(commentId: any): void {
-    if (!commentId || typeof commentId !== 'string') {
-      throw new ValidationError('commentId must be a non-empty string', 'commentId', commentId);
+    if (!commentId || typeof commentId !== "string") {
+      throw new ValidationError(
+        "commentId must be a non-empty string",
+        "commentId",
+        commentId,
+      );
     }
   }
 
   _validateReactionEmoji(emoji: any): void {
-    if (!emoji || typeof emoji !== 'string') {
-      throw new ValidationError('emoji must be a non-empty string', 'emoji', emoji);
+    if (!emoji || typeof emoji !== "string") {
+      throw new ValidationError(
+        "emoji must be a non-empty string",
+        "emoji",
+        emoji,
+      );
     }
 
     // Basic validation for emoji format
     if (emoji.length < 1 || emoji.length > 10) {
-      throw new ValidationError('emoji must be between 1 and 10 characters', 'emoji', emoji);
+      throw new ValidationError(
+        "emoji must be between 1 and 10 characters",
+        "emoji",
+        emoji,
+      );
     }
   }
 
   _validateCommentData(data: any): void {
-    if (!data || typeof data !== 'object') {
-      throw new CommentValidationError('Comment data must be an object');
+    if (!data || typeof data !== "object") {
+      throw new CommentValidationError("Comment data must be an object");
     }
 
-    if (!data.message || typeof data.message !== 'string') {
-      throw new CommentValidationError('Comment message is required and must be a string', 'message');
+    if (!data.message || typeof data.message !== "string") {
+      throw new CommentValidationError(
+        "Comment message is required and must be a string",
+        "message",
+      );
     }
 
     if (data.message.length > 8000) {
-      throw new CommentValidationError('Comment message too long (max 8000 characters)', 'message');
+      throw new CommentValidationError(
+        "Comment message too long (max 8000 characters)",
+        "message",
+      );
     }
   }
 
@@ -700,11 +843,11 @@ export class FigmaCommentsService {
       // Frame offset
       return {
         node_id: position.nodeId,
-        node_offset: { x: position.offsetX || 0, y: position.offsetY || 0 }
+        node_offset: { x: position.offsetX || 0, y: position.offsetY || 0 },
       };
     }
 
-    throw new ValidationError('Invalid position format');
+    throw new ValidationError("Invalid position format");
   }
 
   /**
@@ -715,17 +858,26 @@ export class FigmaCommentsService {
   async _getCurrentUserId(): Promise<string> {
     try {
       // Use the /v1/me endpoint to get current user info
-      const userInfo = await this.fetcher.request('/v1/me');
+      const userInfo = await this.fetcher.request("/v1/me");
       return userInfo.id;
     } catch (error: any) {
-      this.logger.warn('Could not get current user ID:', error.message);
-      throw new CommentError('Unable to determine current user for reaction toggle');
+      this.logger.warn("Could not get current user ID:", error.message);
+      throw new CommentError(
+        "Unable to determine current user for reaction toggle",
+      );
     }
   }
 
   _exportToCsv(comments: any[]): string {
-    const headers = ['ID', 'Message', 'User', 'Created At', 'Resolved At', 'Parent ID'];
-    const rows = [headers.join(',')];
+    const headers = [
+      "ID",
+      "Message",
+      "User",
+      "Created At",
+      "Resolved At",
+      "Parent ID",
+    ];
+    const rows = [headers.join(",")];
 
     for (const comment of comments) {
       const row = [
@@ -733,17 +885,17 @@ export class FigmaCommentsService {
         `"${comment.message.replace(/"/g, '""')}"`,
         comment.user.handle,
         comment.created_at,
-        comment.resolved_at || '',
-        comment.parent_id || ''
+        comment.resolved_at || "",
+        comment.parent_id || "",
       ];
-      rows.push(row.join(','));
+      rows.push(row.join(","));
     }
 
-    return rows.join('\n');
+    return rows.join("\n");
   }
 
   _exportToMarkdown(comments: any[]): string {
-    const lines = ['# Figma Comments Export', ''];
+    const lines = ["# Figma Comments Export", ""];
 
     const rootComments = comments.filter((c: any) => !c.parent_id);
 
@@ -751,22 +903,24 @@ export class FigmaCommentsService {
       lines.push(`## Comment by ${comment.user.handle}`);
       lines.push(`**Date:** ${new Date(comment.created_at).toLocaleString()}`);
       lines.push(`**ID:** ${comment.id}`);
-      lines.push('');
+      lines.push("");
       lines.push(comment.message);
-      lines.push('');
+      lines.push("");
 
       // Add replies
       const replies = comments.filter((c: any) => c.parent_id === comment.id);
       if (replies.length > 0) {
-        lines.push('### Replies');
+        lines.push("### Replies");
         for (const reply of replies) {
-          lines.push(`- **${reply.user.handle}** (${new Date(reply.created_at).toLocaleString()}): ${reply.message}`);
+          lines.push(
+            `- **${reply.user.handle}** (${new Date(reply.created_at).toLocaleString()}): ${reply.message}`,
+          );
         }
-        lines.push('');
+        lines.push("");
       }
     }
 
-    return lines.join('\n');
+    return lines.join("\n");
   }
 }
 

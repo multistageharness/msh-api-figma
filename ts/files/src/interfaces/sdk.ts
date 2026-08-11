@@ -4,7 +4,7 @@
  * Simplifies common operations and provides convenient methods
  */
 
-import FigmaFilesService from '../core/service.js';
+import FigmaFilesService from "../core/service.js";
 
 /**
  * High-level SDK for Figma Files API operations
@@ -26,10 +26,13 @@ export class FigmaFilesSDK {
    * @param {Object} config.fetcher - FigmaApiClient instance (required)
    * @param {Object} [config.logger=console] - Logger instance
    */
-  constructor({ fetcher, logger = console }: { fetcher?: any; logger?: any } = {}) {
+  constructor({
+    fetcher,
+    logger = console,
+  }: { fetcher?: any; logger?: any } = {}) {
     this.service = new FigmaFilesService({
       fetcher,
-      logger
+      logger,
     });
     this.logger = logger;
   }
@@ -44,7 +47,10 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Additional options
    * @returns {Promise<Object>} Complete file data
    */
-  async getFile(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getFile(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getFile(fileKey, options);
   }
 
@@ -55,7 +61,11 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Additional options
    * @returns {Promise<Object>} Node data
    */
-  async getNodes(fileKey: string, nodeIds: string | string[], options: Record<string, any> = {}): Promise<any> {
+  async getNodes(
+    fileKey: string,
+    nodeIds: string | string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getFileNodes(fileKey, nodeIds, options);
   }
 
@@ -74,7 +84,10 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Pagination options
    * @returns {Promise<Object>} Version history
    */
-  async getVersions(fileKey: string, options: Record<string, any> = {}): Promise<any> {
+  async getVersions(
+    fileKey: string,
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.getFileVersions(fileKey, options);
   }
 
@@ -89,10 +102,14 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Rendering options
    * @returns {Promise<Object>} Image URLs
    */
-  async renderPNG(fileKey: string, nodeIds: string | string[], options: Record<string, any> = {}): Promise<any> {
+  async renderPNG(
+    fileKey: string,
+    nodeIds: string | string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.renderImages(fileKey, nodeIds, {
-      format: 'png',
-      ...options
+      format: "png",
+      ...options,
     });
   }
 
@@ -103,10 +120,14 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Rendering options
    * @returns {Promise<Object>} Image URLs
    */
-  async renderJPG(fileKey: string, nodeIds: string | string[], options: Record<string, any> = {}): Promise<any> {
+  async renderJPG(
+    fileKey: string,
+    nodeIds: string | string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.renderImages(fileKey, nodeIds, {
-      format: 'jpg',
-      ...options
+      format: "jpg",
+      ...options,
     });
   }
 
@@ -117,10 +138,14 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Rendering options
    * @returns {Promise<Object>} Image URLs
    */
-  async renderSVG(fileKey: string, nodeIds: string | string[], options: Record<string, any> = {}): Promise<any> {
+  async renderSVG(
+    fileKey: string,
+    nodeIds: string | string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.renderImages(fileKey, nodeIds, {
-      format: 'svg',
-      ...options
+      format: "svg",
+      ...options,
     });
   }
 
@@ -131,10 +156,14 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Rendering options
    * @returns {Promise<Object>} PDF URLs
    */
-  async renderPDF(fileKey: string, nodeIds: string | string[], options: Record<string, any> = {}): Promise<any> {
+  async renderPDF(
+    fileKey: string,
+    nodeIds: string | string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.renderImages(fileKey, nodeIds, {
-      format: 'pdf',
-      ...options
+      format: "pdf",
+      ...options,
     });
   }
 
@@ -168,12 +197,16 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Search options
    * @returns {Promise<Object[]>} Matching nodes
    */
-  async searchNodesByName(fileKey: string, searchTerm: string, options: Record<string, any> = {}): Promise<any[]> {
+  async searchNodesByName(
+    fileKey: string,
+    searchTerm: string,
+    _options: Record<string, any> = {},
+  ): Promise<any[]> {
     const file = await this.getFile(fileKey);
     const matches: any[] = [];
 
     function searchRecursive(node: any) {
-      if (node.name && node.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      if (node.name?.toLowerCase().includes(searchTerm.toLowerCase())) {
         matches.push(node);
       }
       if (node.children) {
@@ -218,7 +251,7 @@ export class FigmaFilesSDK {
     const textContent: string[] = [];
 
     function extractTextRecursive(node: any) {
-      if (node.type === 'TEXT' && node.characters) {
+      if (node.type === "TEXT" && node.characters) {
         textContent.push(node.characters);
       }
       if (node.children) {
@@ -241,7 +274,7 @@ export class FigmaFilesSDK {
   async getFileAnalytics(fileKey: string): Promise<any> {
     const [file, metadata] = await Promise.all([
       this.getFile(fileKey, { depth: 1 }),
-      this.getMetadata(fileKey)
+      this.getMetadata(fileKey),
     ]);
 
     let nodeCount = 0;
@@ -250,8 +283,8 @@ export class FigmaFilesSDK {
 
     function countNodes(node: any) {
       nodeCount++;
-      if (node.type === 'CANVAS') pageCount++;
-      if (node.type === 'COMPONENT') componentCount++;
+      if (node.type === "CANVAS") pageCount++;
+      if (node.type === "COMPONENT") componentCount++;
       if (node.children) {
         node.children.forEach(countNodes);
       }
@@ -270,7 +303,7 @@ export class FigmaFilesSDK {
       pageCount,
       componentCount,
       stylesCount: Object.keys(file.styles || {}).length,
-      metadata
+      metadata,
     };
   }
 
@@ -284,7 +317,10 @@ export class FigmaFilesSDK {
    * @param {Object} [options] - Request options
    * @returns {Promise<Object>} Batch results
    */
-  async batchGetFiles(fileKeys: string[], options: Record<string, any> = {}): Promise<any> {
+  async batchGetFiles(
+    fileKeys: string[],
+    options: Record<string, any> = {},
+  ): Promise<any> {
     return this.service.batchGetFiles(fileKeys, options);
   }
 
@@ -294,14 +330,20 @@ export class FigmaFilesSDK {
    * @returns {Promise<Object[]>} Array of render results
    */
   async batchRenderImages(requests: any[]): Promise<any[]> {
-    const promises = requests.map(async ({ fileKey, nodeIds, options = {} }) => {
-      try {
-        const result = await this.service.renderImages(fileKey, nodeIds, options);
-        return { fileKey, success: true, result };
-      } catch (error: any) {
-        return { fileKey, success: false, error: error.message };
-      }
-    });
+    const promises = requests.map(
+      async ({ fileKey, nodeIds, options = {} }) => {
+        try {
+          const result = await this.service.renderImages(
+            fileKey,
+            nodeIds,
+            options,
+          );
+          return { fileKey, success: true, result };
+        } catch (error: any) {
+          return { fileKey, success: false, error: error.message };
+        }
+      },
+    );
 
     return Promise.all(promises);
   }
@@ -318,7 +360,7 @@ export class FigmaFilesSDK {
   static parseFileKeyFromUrl(url: string): string {
     const match = url.match(/figma\.com\/file\/([a-zA-Z0-9\-_]+)/);
     if (!match) {
-      throw new Error('Invalid Figma file URL');
+      throw new Error("Invalid Figma file URL");
     }
     return match[1];
   }
@@ -339,7 +381,7 @@ export class FigmaFilesSDK {
    * @returns {boolean} Whether file key is valid
    */
   static isValidFileKey(fileKey: any): boolean {
-    return typeof fileKey === 'string' && /^[a-zA-Z0-9\-_]+$/.test(fileKey);
+    return typeof fileKey === "string" && /^[a-zA-Z0-9\-_]+$/.test(fileKey);
   }
 
   /**

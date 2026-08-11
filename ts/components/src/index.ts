@@ -3,33 +3,32 @@
  * Exports all public interfaces for the library
  */
 
-// Core exports
-export { FigmaComponentsService } from './core/service.js';
-
-// Interface exports
-export { FigmaComponentsSDK } from './interfaces/sdk.js';
-
 // Exception exports
 export {
-  FigmaApiError,
-  RateLimitError,
   AuthenticationError,
   AuthorizationError,
-  TeamNotFoundError,
-  FileNotFoundError,
   ComponentNotFoundError,
   ComponentSetNotFoundError,
-  StyleNotFoundError,
-  ValidationError,
-  NetworkError,
-  HttpError,
-  ServerError,
-  TimeoutError,
-  PaginationError,
-  ScopeError,
   createErrorFromResponse,
-  isRetryableError
-} from './core/exceptions.js';
-
+  FigmaApiError,
+  FileNotFoundError,
+  HttpError,
+  isRetryableError,
+  NetworkError,
+  PaginationError,
+  RateLimitError,
+  ScopeError,
+  ServerError,
+  StyleNotFoundError,
+  TeamNotFoundError,
+  TimeoutError,
+  ValidationError,
+} from "./core/exceptions.js";
+// Core exports
+export { FigmaComponentsService } from "./core/service.js";
+// Interface exports
 // Default export for convenience
-export { FigmaComponentsSDK as default } from './interfaces/sdk.js';
+export {
+  FigmaComponentsSDK,
+  FigmaComponentsSDK as default,
+} from "./interfaces/sdk.js";

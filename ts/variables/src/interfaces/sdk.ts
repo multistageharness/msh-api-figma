@@ -3,7 +3,7 @@
  * Provides ergonomic API over core service layer
  */
 
-import { FigmaVariablesService } from '../core/service.js';
+import { FigmaVariablesService } from "../core/service.js";
 
 /**
  * High-level SDK for Figma Variables API
@@ -23,10 +23,13 @@ export class FigmaVariablesSDK {
    * @param {object} config.fetcher - FigmaApiClient instance (required)
    * @param {object} [config.logger=console] - Logger instance
    */
-  constructor({ fetcher, logger = console }: { fetcher?: any; logger?: any } = {}) {
+  constructor({
+    fetcher,
+    logger = console,
+  }: { fetcher?: any; logger?: any } = {}) {
     this.service = new FigmaVariablesService({
       fetcher,
-      logger
+      logger,
     });
   }
 
@@ -48,7 +51,10 @@ export class FigmaVariablesSDK {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Published variables and collections
    */
-  async getPublishedVariables(fileKey: string, options: any = {}): Promise<any> {
+  async getPublishedVariables(
+    fileKey: string,
+    options: any = {},
+  ): Promise<any> {
     return this.service.getPublishedVariables(fileKey, options);
   }
 
@@ -59,7 +65,11 @@ export class FigmaVariablesSDK {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Variable details
    */
-  async getVariable(fileKey: string, variableId: string, options: any = {}): Promise<any> {
+  async getVariable(
+    fileKey: string,
+    variableId: string,
+    options: any = {},
+  ): Promise<any> {
     return this.service.getVariable(fileKey, variableId, options);
   }
 
@@ -70,7 +80,11 @@ export class FigmaVariablesSDK {
    * @param {Object} options - Request options
    * @returns {Promise<Object>} Collection details
    */
-  async getCollection(fileKey: string, collectionId: string, options: any = {}): Promise<any> {
+  async getCollection(
+    fileKey: string,
+    collectionId: string,
+    options: any = {},
+  ): Promise<any> {
     return this.service.getVariableCollection(fileKey, collectionId, options);
   }
 
@@ -81,7 +95,11 @@ export class FigmaVariablesSDK {
    * @param {Object} options - Request options
    * @returns {Promise<Array>} Matching variables
    */
-  async searchVariables(fileKey: string, criteria: any, options: any = {}): Promise<any[]> {
+  async searchVariables(
+    fileKey: string,
+    criteria: any,
+    options: any = {},
+  ): Promise<any[]> {
     return this.service.searchVariables(fileKey, criteria, options);
   }
 
@@ -94,10 +112,14 @@ export class FigmaVariablesSDK {
    * @param {Object} config - Additional configuration
    * @returns {Promise<Object>} Creation result
    */
-  async createCollection(fileKey: string, name: string, config: any = {}): Promise<any> {
+  async createCollection(
+    fileKey: string,
+    name: string,
+    config: any = {},
+  ): Promise<any> {
     const collectionData = {
       name,
-      ...config
+      ...config,
     };
 
     return this.service.createVariableCollection(fileKey, collectionData);
@@ -130,7 +152,11 @@ export class FigmaVariablesSDK {
    * @param {Object} updates - Updates to apply
    * @returns {Promise<Object>} Update result
    */
-  async updateVariable(fileKey: string, variableId: string, updates: any): Promise<any> {
+  async updateVariable(
+    fileKey: string,
+    variableId: string,
+    updates: any,
+  ): Promise<any> {
     return this.service.updateVariable(fileKey, variableId, updates);
   }
 
@@ -152,8 +178,18 @@ export class FigmaVariablesSDK {
    * @param {string} modeId - Mode for the alias
    * @returns {Promise<Object>} Alias creation result
    */
-  async createAlias(fileKey: string, aliasVariableId: string, targetVariableId: string, modeId: string): Promise<any> {
-    return this.service.createVariableAlias(fileKey, aliasVariableId, targetVariableId, modeId);
+  async createAlias(
+    fileKey: string,
+    aliasVariableId: string,
+    targetVariableId: string,
+    modeId: string,
+  ): Promise<any> {
+    return this.service.createVariableAlias(
+      fileKey,
+      aliasVariableId,
+      targetVariableId,
+      modeId,
+    );
   }
 
   // Convenience methods for common patterns
@@ -167,14 +203,20 @@ export class FigmaVariablesSDK {
    * @param {string} modeId - Mode ID
    * @returns {Promise<Object>} Creation result
    */
-  async createColorVariable(fileKey: string, name: string, collectionId: string, colorValue: any, modeId: string): Promise<any> {
+  async createColorVariable(
+    fileKey: string,
+    name: string,
+    collectionId: string,
+    colorValue: any,
+    modeId: string,
+  ): Promise<any> {
     return this.createVariable(fileKey, {
       name,
       variableCollectionId: collectionId,
-      resolvedType: 'COLOR',
+      resolvedType: "COLOR",
       values: {
-        [modeId]: colorValue
-      }
+        [modeId]: colorValue,
+      },
     });
   }
 
@@ -187,14 +229,20 @@ export class FigmaVariablesSDK {
    * @param {string} modeId - Mode ID
    * @returns {Promise<Object>} Creation result
    */
-  async createStringVariable(fileKey: string, name: string, collectionId: string, stringValue: string, modeId: string): Promise<any> {
+  async createStringVariable(
+    fileKey: string,
+    name: string,
+    collectionId: string,
+    stringValue: string,
+    modeId: string,
+  ): Promise<any> {
     return this.createVariable(fileKey, {
       name,
       variableCollectionId: collectionId,
-      resolvedType: 'STRING',
+      resolvedType: "STRING",
       values: {
-        [modeId]: stringValue
-      }
+        [modeId]: stringValue,
+      },
     });
   }
 
@@ -207,14 +255,20 @@ export class FigmaVariablesSDK {
    * @param {string} modeId - Mode ID
    * @returns {Promise<Object>} Creation result
    */
-  async createNumberVariable(fileKey: string, name: string, collectionId: string, numberValue: number, modeId: string): Promise<any> {
+  async createNumberVariable(
+    fileKey: string,
+    name: string,
+    collectionId: string,
+    numberValue: number,
+    modeId: string,
+  ): Promise<any> {
     return this.createVariable(fileKey, {
       name,
       variableCollectionId: collectionId,
-      resolvedType: 'FLOAT',
+      resolvedType: "FLOAT",
       values: {
-        [modeId]: numberValue
-      }
+        [modeId]: numberValue,
+      },
     });
   }
 
@@ -227,14 +281,20 @@ export class FigmaVariablesSDK {
    * @param {string} modeId - Mode ID
    * @returns {Promise<Object>} Creation result
    */
-  async createBooleanVariable(fileKey: string, name: string, collectionId: string, booleanValue: boolean, modeId: string): Promise<any> {
+  async createBooleanVariable(
+    fileKey: string,
+    name: string,
+    collectionId: string,
+    booleanValue: boolean,
+    modeId: string,
+  ): Promise<any> {
     return this.createVariable(fileKey, {
       name,
       variableCollectionId: collectionId,
-      resolvedType: 'BOOLEAN',
+      resolvedType: "BOOLEAN",
       values: {
-        [modeId]: booleanValue
-      }
+        [modeId]: booleanValue,
+      },
     });
   }
 
@@ -253,10 +313,18 @@ export class FigmaVariablesSDK {
     // Create collections first
     for (const collection of collections) {
       try {
-        const result = await this.createCollection(fileKey, collection.name, collection);
+        const result = await this.createCollection(
+          fileKey,
+          collection.name,
+          collection,
+        );
         results.collections.push(result);
       } catch (error: any) {
-        results.errors.push({ type: 'collection', data: collection, error: error.message });
+        results.errors.push({
+          type: "collection",
+          data: collection,
+          error: error.message,
+        });
       }
     }
 
@@ -268,7 +336,11 @@ export class FigmaVariablesSDK {
         const result = await this.createVariables(fileKey, batch);
         results.variables.push(result);
       } catch (error: any) {
-        results.errors.push({ type: 'variables', data: batch, error: error.message });
+        results.errors.push({
+          type: "variables",
+          data: batch,
+          error: error.message,
+        });
       }
     }
 
@@ -285,16 +357,20 @@ export class FigmaVariablesSDK {
     const data = await this.getVariables(fileKey, options);
 
     return {
-      collections: Object.entries(data.variableCollections).map(([id, collection]: [string, any]) => ({
-        id,
-        ...collection
-      })),
-      variables: Object.entries(data.variables).map(([id, variable]: [string, any]) => ({
-        id,
-        ...variable
-      })),
+      collections: Object.entries(data.variableCollections).map(
+        ([id, collection]: [string, any]) => ({
+          id,
+          ...collection,
+        }),
+      ),
+      variables: Object.entries(data.variables).map(
+        ([id, variable]: [string, any]) => ({
+          id,
+          ...variable,
+        }),
+      ),
       stats: data.stats,
-      exportedAt: new Date().toISOString()
+      exportedAt: new Date().toISOString(),
     };
   }
 
@@ -306,7 +382,7 @@ export class FigmaVariablesSDK {
    */
   getStats(): any {
     return {
-      service: this.service.getStats()
+      service: this.service.getStats(),
     };
   }
 
@@ -322,13 +398,13 @@ export class FigmaVariablesSDK {
         success: true,
         hasVariables: result.stats.variableCount > 0,
         hasCollections: result.stats.collectionCount > 0,
-        stats: result.stats
+        stats: result.stats,
       };
     } catch (error: any) {
       return {
         success: false,
         error: error.message,
-        code: error.code
+        code: error.code,
       };
     }
   }

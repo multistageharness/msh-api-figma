@@ -14,9 +14,9 @@
  * `client.mjs:isOffline`) into one shared, tested rail.
  */
 
-import { resolveFigmaToken } from '../client/config.js';
-import { createErrorFromResponse } from '../errors/index.js';
-import { HealthCheckResult, ClientStats } from '../types/index.js';
+import { resolveFigmaToken } from "../client/config.js";
+import { createErrorFromResponse } from "../errors/index.js";
+import type { ClientStats, HealthCheckResult } from "../types/index.js";
 
 /**
  * Whether the SDK should run in offline mode — i.e. no Figma token is resolvable
@@ -25,9 +25,9 @@ import { HealthCheckResult, ClientStats } from '../types/index.js';
  */
 export function isOffline(
   explicitToken?: string,
-  envSource: Record<string, string | undefined> = process.env
+  envSource: Record<string, string | undefined> = process.env,
 ): boolean {
-  return resolveFigmaToken(explicitToken, envSource) === '';
+  return resolveFigmaToken(explicitToken, envSource) === "";
 }
 
 /** A recorded call against the fake client. */
@@ -65,13 +65,16 @@ export interface FakeFigmaClientConfig {
 }
 
 /** Compile a `/v1/files/:key` style pattern into a matcher. */
-function matchPattern(pattern: string, path: string): Record<string, string> | null {
-  const pSeg = pattern.split('/').filter(Boolean);
-  const aSeg = path.split('/').filter(Boolean);
+function matchPattern(
+  pattern: string,
+  path: string,
+): Record<string, string> | null {
+  const pSeg = pattern.split("/").filter(Boolean);
+  const aSeg = path.split("/").filter(Boolean);
   if (pSeg.length !== aSeg.length) return null;
   const out: Record<string, string> = {};
   for (let i = 0; i < pSeg.length; i++) {
-    if (pSeg[i].startsWith(':')) {
+    if (pSeg[i].startsWith(":")) {
       out[pSeg[i].slice(1)] = decodeURIComponent(aSeg[i]);
     } else if (pSeg[i] !== aSeg[i]) {
       return null;
@@ -80,7 +83,11 @@ function matchPattern(pattern: string, path: string): Record<string, string> | n
   return out;
 }
 
-const DEFAULT_USER = { id: 'fake-user', handle: 'offline', email: 'offline@example.test' };
+const DEFAULT_USER = {
+  id: "fake-user",
+  handle: "offline",
+  email: "offline@example.test",
+};
 
 /**
  * Offline/fixture stand-in for `FigmaApiClient`. Mirrors the public verb surface
@@ -118,15 +125,20 @@ export class FakeFigmaClient {
     return this;
   }
 
-  private dispatch(method: string, rawPath: string, params: Record<string, any>, body?: any): any {
+  private dispatch(
+    method: string,
+    rawPath: string,
+    params: Record<string, any>,
+    body?: any,
+  ): any {
     this.stats.totalRequests++;
     this.stats.lastRequestTime = new Date().toISOString();
-    const [path] = rawPath.split('?');
+    const [path] = rawPath.split("?");
     this.calls.push({ method, path, params, body });
 
     // 1. Explicit custom routes win.
     for (const key of Object.keys(this.routes)) {
-      const [rMethod, rPattern] = key.split(' ');
+      const [rMethod, rPattern] = key.split(" ");
       if (rMethod !== method) continue;
       const pathParams = matchPattern(rPattern, path);
       if (pathParams) {
@@ -147,20 +159,28 @@ export class FakeFigmaClient {
     return this.fallback;
   }
 
-  private builtinRoute(method: string, path: string, _params: Record<string, any>): any {
-    if (method === 'GET') {
-      if (matchPattern('/v1/me', path)) return this.user;
+  private builtinRoute(
+    method: string,
+    path: string,
+    _params: Record<string, any>,
+  ): any {
+    if (method === "GET") {
+      if (matchPattern("/v1/me", path)) return this.user;
 
-      const file = matchPattern('/v1/files/:key', path);
+      const file = matchPattern("/v1/files/:key", path);
       if (file) {
         const doc = this.files[file.key];
         if (doc === undefined) {
-          throw createErrorFromResponse({ status: 404, statusText: 'Not Found', url: path });
+          throw createErrorFromResponse({
+            status: 404,
+            statusText: "Not Found",
+            url: path,
+          });
         }
         return doc;
       }
 
-      const img = matchPattern('/v1/images/:key', path);
+      const img = matchPattern("/v1/images/:key", path);
       if (img) return { err: null, images: this.images };
     }
     return undefined;
@@ -169,38 +189,41 @@ export class FakeFigmaClient {
   // --- Generic verb surface (matches FigmaApiClient) ---
 
   async request<T = any>(path: string, options: any = {}): Promise<T> {
-    const method = options.method || 'GET';
+    const method = options.method || "GET";
     const body = options.body ? safeJsonParse(options.body) : undefined;
     return this.dispatch(method, path, {}, body) as T;
   }
 
-  async get<T = any>(path: string, params: Record<string, any> = {}): Promise<T> {
-    return this.dispatch('GET', path, params) as T;
+  async get<T = any>(
+    path: string,
+    params: Record<string, any> = {},
+  ): Promise<T> {
+    return this.dispatch("GET", path, params) as T;
   }
 
   async post<T = any>(path: string, data: any = {}): Promise<T> {
-    return this.dispatch('POST', path, {}, data) as T;
+    return this.dispatch("POST", path, {}, data) as T;
   }
 
   async put<T = any>(path: string, data: any = {}): Promise<T> {
-    return this.dispatch('PUT', path, {}, data) as T;
+    return this.dispatch("PUT", path, {}, data) as T;
   }
 
   async patch<T = any>(path: string, data: any = {}): Promise<T> {
-    return this.dispatch('PATCH', path, {}, data) as T;
+    return this.dispatch("PATCH", path, {}, data) as T;
   }
 
   async delete<T = any>(path: string): Promise<T> {
-    return this.dispatch('DELETE', path, {}) as T;
+    return this.dispatch("DELETE", path, {}) as T;
   }
 
   async getMe<T = any>(): Promise<T> {
-    return this.dispatch('GET', '/v1/me', {}) as T;
+    return this.dispatch("GET", "/v1/me", {}) as T;
   }
 
   async healthCheck(): Promise<HealthCheckResult> {
     return {
-      status: 'healthy',
+      status: "healthy",
       latencyMs: 0,
       user: this.user,
       timestamp: new Date().toISOString(),
@@ -217,7 +240,7 @@ export class FakeFigmaClient {
 }
 
 function safeJsonParse(value: any): any {
-  if (typeof value !== 'string') return value;
+  if (typeof value !== "string") return value;
   try {
     return JSON.parse(value);
   } catch {

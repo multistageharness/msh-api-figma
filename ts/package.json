@@ -21,7 +21,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
     "format": "npm run format --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
   },
   "engines": {
@@ -44,6 +46,7 @@
     "url": "https://github.com/figma/figma-api-module.git"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.7",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   }

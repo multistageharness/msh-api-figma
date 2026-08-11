@@ -2,7 +2,7 @@
  * Error classes for figma-fetch module
  */
 
-import { ErrorCode, FigmaErrorMeta } from '../types/index.js';
+import { ErrorCode, type FigmaErrorMeta } from "../types/index.js";
 
 /**
  * Base error class for all Figma API errors
@@ -11,7 +11,11 @@ export class FigmaFetchError extends Error {
   public readonly code: ErrorCode;
   public readonly meta: FigmaErrorMeta;
 
-  constructor(message: string, code: ErrorCode = ErrorCode.UNKNOWN_ERROR, meta: FigmaErrorMeta = {}) {
+  constructor(
+    message: string,
+    code: ErrorCode = ErrorCode.UNKNOWN_ERROR,
+    meta: FigmaErrorMeta = {},
+  ) {
     super(message);
     this.name = this.constructor.name;
     this.code = code;
@@ -79,7 +83,7 @@ const EXIT_CODE_BY_ERROR_CODE: Record<string, number> = {
  * Network error - connection failures, DNS errors, etc.
  */
 export class NetworkError extends FigmaFetchError {
-  constructor(message: string = 'Network request failed', cause?: Error) {
+  constructor(message: string = "Network request failed", cause?: Error) {
     super(message, ErrorCode.NETWORK_ERROR, { cause });
   }
 }
@@ -89,7 +93,9 @@ export class NetworkError extends FigmaFetchError {
  */
 export class TimeoutError extends FigmaFetchError {
   constructor(timeout: number) {
-    super(`Request timed out after ${timeout}ms`, ErrorCode.TIMEOUT_ERROR, { timeout });
+    super(`Request timed out after ${timeout}ms`, ErrorCode.TIMEOUT_ERROR, {
+      timeout,
+    });
   }
 }
 
@@ -101,7 +107,7 @@ export class RateLimitError extends FigmaFetchError {
     super(
       `Rate limit exceeded. Retry after ${retryAfter} seconds`,
       ErrorCode.RATE_LIMIT_ERROR,
-      { retryAfter }
+      { retryAfter },
     );
   }
 }
@@ -110,7 +116,7 @@ export class RateLimitError extends FigmaFetchError {
  * Authentication error - invalid or missing API token
  */
 export class AuthenticationError extends FigmaFetchError {
-  constructor(message: string = 'Authentication failed') {
+  constructor(message: string = "Authentication failed") {
     super(message, ErrorCode.AUTH_ERROR);
   }
 }
@@ -164,38 +170,40 @@ export function createErrorFromResponse(response: {
 
   // Rate limit error
   if (status === 429) {
-    const retryAfter = headers?.['retry-after']
-      ? parseInt(headers['retry-after'])
+    const retryAfter = headers?.["retry-after"]
+      ? parseInt(headers["retry-after"], 10)
       : 60;
     return new RateLimitError(retryAfter);
   }
 
   // Authentication errors
   if (status === 401 || status === 403) {
-    const message = data?.message || data?.error || 'Authentication failed';
+    const message = data?.message || data?.error || "Authentication failed";
     return new AuthenticationError(message);
   }
 
   // Not found
   if (status === 404) {
-    const resource = url || 'unknown';
+    const resource = url || "unknown";
     return new NotFoundError(resource);
   }
 
   // Validation errors
   if (status === 400 || status === 422) {
-    const message = data?.message || data?.error || 'Validation failed';
+    const message = data?.message || data?.error || "Validation failed";
     return new ValidationError(message);
   }
 
   // Server errors (5xx)
   if (status >= 500) {
-    const message = data?.message || data?.error || `Server error: ${statusText}`;
+    const message =
+      data?.message || data?.error || `Server error: ${statusText}`;
     return new ServerError(message, status);
   }
 
   // Generic error for other status codes
-  const message = data?.message || data?.error || `HTTP ${status}: ${statusText}`;
+  const message =
+    data?.message || data?.error || `HTTP ${status}: ${statusText}`;
   return new FigmaFetchError(message, ErrorCode.UNKNOWN_ERROR, meta);
 }
 

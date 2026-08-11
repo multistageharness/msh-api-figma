@@ -10,20 +10,20 @@
  * service layer (R1), mirroring the Python edition's behavior.
  */
 
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 /** Figma v2 webhook event types. */
 export const WEBHOOK_EVENT_TYPES = [
-  'PING',
-  'FILE_UPDATE',
-  'FILE_VERSION_UPDATE',
-  'FILE_DELETE',
-  'LIBRARY_PUBLISH',
-  'FILE_COMMENT',
+  "PING",
+  "FILE_UPDATE",
+  "FILE_VERSION_UPDATE",
+  "FILE_DELETE",
+  "LIBRARY_PUBLISH",
+  "FILE_COMMENT",
 ] as const;
 
 /** Figma v2 webhook context types. */
-export const WEBHOOK_CONTEXT_TYPES = ['team', 'project', 'file'] as const;
+export const WEBHOOK_CONTEXT_TYPES = ["team", "project", "file"] as const;
 
 export interface FigmaWebhooksSDKConfig {
   /** FigmaApiClient instance (required) */
@@ -53,9 +53,16 @@ export class FigmaWebhooksSDK {
    * @param config.fetcher - FigmaApiClient instance (required)
    * @param config.logger - Custom logger
    */
-  constructor({ fetcher, logger = console }: FigmaWebhooksSDKConfig = {} as FigmaWebhooksSDKConfig) {
+  constructor(
+    {
+      fetcher,
+      logger = console,
+    }: FigmaWebhooksSDKConfig = {} as FigmaWebhooksSDKConfig,
+  ) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
 
     this.fetcher = fetcher;
@@ -70,9 +77,9 @@ export class FigmaWebhooksSDK {
    */
   private _toWebhookBody(input: Record<string, any>): Record<string, any> {
     const map: Record<string, string> = {
-      eventType: 'event_type',
-      contextId: 'context_id',
-      planApiId: 'plan_api_id',
+      eventType: "event_type",
+      contextId: "context_id",
+      planApiId: "plan_api_id",
     };
     const body: Record<string, any> = {};
     for (const [key, value] of Object.entries(input)) {
@@ -89,13 +96,16 @@ export class FigmaWebhooksSDK {
 
   /** POST /v2/webhooks (create). */
   private async _createWebhook(input: Record<string, any>): Promise<any> {
-    const response = await this.fetcher.post('/v2/webhooks', this._toWebhookBody(input));
+    const response = await this.fetcher.post(
+      "/v2/webhooks",
+      this._toWebhookBody(input),
+    );
     return this._unwrapWebhook(response);
   }
 
   /** Is this error a 404 from the shared error model? */
   private _isNotFound(error: any): boolean {
-    return error?.code === 'NOT_FOUND' || error?.meta?.status === 404;
+    return error?.code === "NOT_FOUND" || error?.meta?.status === 404;
   }
 
   // === Webhook Management Methods ===
@@ -109,7 +119,7 @@ export class FigmaWebhooksSDK {
     endpoint,
     passcode,
     description,
-    active = true
+    active = true,
   }: {
     fileKey: string;
     endpoint: string;
@@ -118,13 +128,13 @@ export class FigmaWebhooksSDK {
     active?: boolean;
   }): Promise<any> {
     return this._createWebhook({
-      eventType: 'FILE_UPDATE',
-      context: 'file',
+      eventType: "FILE_UPDATE",
+      context: "file",
       contextId: fileKey,
       endpoint,
       passcode,
-      status: active ? 'ACTIVE' : 'PAUSED',
-      description
+      status: active ? "ACTIVE" : "PAUSED",
+      description,
     });
   }
 
@@ -134,11 +144,11 @@ export class FigmaWebhooksSDK {
    */
   async createProjectWebhook({
     projectId,
-    eventType = 'FILE_UPDATE',
+    eventType = "FILE_UPDATE",
     endpoint,
     passcode,
     description,
-    active = true
+    active = true,
   }: {
     projectId: string;
     eventType?: string;
@@ -149,12 +159,12 @@ export class FigmaWebhooksSDK {
   }): Promise<any> {
     return this._createWebhook({
       eventType,
-      context: 'project',
+      context: "project",
       contextId: projectId,
       endpoint,
       passcode,
-      status: active ? 'ACTIVE' : 'PAUSED',
-      description
+      status: active ? "ACTIVE" : "PAUSED",
+      description,
     });
   }
 
@@ -164,11 +174,11 @@ export class FigmaWebhooksSDK {
    */
   async createTeamWebhook({
     teamId,
-    eventType = 'FILE_UPDATE',
+    eventType = "FILE_UPDATE",
     endpoint,
     passcode,
     description,
-    active = true
+    active = true,
   }: {
     teamId: string;
     eventType?: string;
@@ -179,12 +189,12 @@ export class FigmaWebhooksSDK {
   }): Promise<any> {
     return this._createWebhook({
       eventType,
-      context: 'team',
+      context: "team",
       contextId: teamId,
       endpoint,
       passcode,
-      status: active ? 'ACTIVE' : 'PAUSED',
-      description
+      status: active ? "ACTIVE" : "PAUSED",
+      description,
     });
   }
 
@@ -211,7 +221,10 @@ export class FigmaWebhooksSDK {
    * @returns Array of webhooks
    */
   async listWebhooks(options: Record<string, any> = {}): Promise<any[]> {
-    const response = await this.fetcher.get('/v2/webhooks', this._toWebhookBody(options));
+    const response = await this.fetcher.get(
+      "/v2/webhooks",
+      this._toWebhookBody(options),
+    );
     return response.webhooks || [];
   }
 
@@ -227,7 +240,7 @@ export class FigmaWebhooksSDK {
     do {
       const params: Record<string, any> = { plan_api_id: planApiId };
       if (cursor) params.cursor = cursor;
-      const response = await this.fetcher.get('/v2/webhooks', params);
+      const response = await this.fetcher.get("/v2/webhooks", params);
       if (Array.isArray(response.webhooks)) {
         webhooks.push(...response.webhooks);
       }
@@ -243,8 +256,14 @@ export class FigmaWebhooksSDK {
    * @param updates - Fields to update
    * @returns Updated webhook
    */
-  async updateWebhook(webhookId: string, updates: Record<string, any>): Promise<any> {
-    const response = await this.fetcher.put(`/v2/webhooks/${webhookId}`, this._toWebhookBody(updates));
+  async updateWebhook(
+    webhookId: string,
+    updates: Record<string, any>,
+  ): Promise<any> {
+    const response = await this.fetcher.put(
+      `/v2/webhooks/${webhookId}`,
+      this._toWebhookBody(updates),
+    );
     return this._unwrapWebhook(response);
   }
 
@@ -271,7 +290,7 @@ export class FigmaWebhooksSDK {
    * @returns Updated webhook
    */
   async pauseWebhook(webhookId: string): Promise<any> {
-    return this.updateWebhook(webhookId, { status: 'PAUSED' });
+    return this.updateWebhook(webhookId, { status: "PAUSED" });
   }
 
   /**
@@ -280,7 +299,7 @@ export class FigmaWebhooksSDK {
    * @returns Updated webhook
    */
   async activateWebhook(webhookId: string): Promise<any> {
-    return this.updateWebhook(webhookId, { status: 'ACTIVE' });
+    return this.updateWebhook(webhookId, { status: "ACTIVE" });
   }
 
   // === Webhook Monitoring Methods ===
@@ -291,7 +310,9 @@ export class FigmaWebhooksSDK {
    * @returns Recent webhook requests
    */
   async getWebhookHistory(webhookId: string): Promise<any[]> {
-    const response = await this.fetcher.get(`/v2/webhooks/${webhookId}/requests`);
+    const response = await this.fetcher.get(
+      `/v2/webhooks/${webhookId}/requests`,
+    );
     return response.requests || [];
   }
 
@@ -305,31 +326,32 @@ export class FigmaWebhooksSDK {
 
     if (requests.length === 0) {
       return {
-        status: 'unknown',
-        message: 'No recent webhook deliveries found',
+        status: "unknown",
+        message: "No recent webhook deliveries found",
         successRate: null,
-        lastDelivery: null
+        lastDelivery: null,
       };
     }
 
-    const successful = requests.filter((req: any) =>
-      req.response_info && parseInt(req.response_info.status) < 400
+    const successful = requests.filter(
+      (req: any) =>
+        req.response_info && parseInt(req.response_info.status, 10) < 400,
     );
 
     const successRate = successful.length / requests.length;
     const lastRequest = requests[0]; // Most recent
 
-    let status = 'healthy';
+    let status = "healthy";
     let message = `Webhook is healthy (${Math.round(successRate * 100)}% success rate)`;
 
     if (successRate < 0.8) {
-      status = 'degraded';
+      status = "degraded";
       message = `Webhook is experiencing issues (${Math.round(successRate * 100)}% success rate)`;
     }
 
     if (successRate === 0) {
-      status = 'failing';
-      message = 'Webhook is failing all deliveries';
+      status = "failing";
+      message = "Webhook is failing all deliveries";
     }
 
     return {
@@ -339,7 +361,7 @@ export class FigmaWebhooksSDK {
       lastDelivery: lastRequest?.request_info?.sent_at,
       totalRequests: requests.length,
       successfulRequests: successful.length,
-      failedRequests: requests.length - successful.length
+      failedRequests: requests.length - successful.length,
     };
   }
 
@@ -351,24 +373,27 @@ export class FigmaWebhooksSDK {
    * @param webhookConfig - Base webhook configuration
    * @returns Results with created webhooks and errors
    */
-  async createBulkWebhooks(contextIds: string[], webhookConfig: Record<string, any>): Promise<any> {
+  async createBulkWebhooks(
+    contextIds: string[],
+    webhookConfig: Record<string, any>,
+  ): Promise<any> {
     const results: { created: any[]; errors: any[] } = {
       created: [],
-      errors: []
+      errors: [],
     };
 
     for (const contextId of contextIds) {
       try {
         const webhook = await this._createWebhook({
           ...webhookConfig,
-          contextId
+          contextId,
         });
         results.created.push(webhook);
       } catch (error: any) {
         results.errors.push({
           contextId,
           error: error.message,
-          code: error.code
+          code: error.code,
         });
       }
     }
@@ -384,7 +409,7 @@ export class FigmaWebhooksSDK {
   async deleteBulkWebhooks(webhookIds: string[]): Promise<any> {
     const results: { deleted: any[]; errors: any[] } = {
       deleted: [],
-      errors: []
+      errors: [],
     };
 
     for (const webhookId of webhookIds) {
@@ -395,7 +420,7 @@ export class FigmaWebhooksSDK {
         results.errors.push({
           webhookId,
           error: error.message,
-          code: error.code
+          code: error.code,
         });
       }
     }
@@ -411,7 +436,7 @@ export class FigmaWebhooksSDK {
   async pauseBulkWebhooks(webhookIds: string[]): Promise<any> {
     const results: { paused: any[]; errors: any[] } = {
       paused: [],
-      errors: []
+      errors: [],
     };
 
     for (const webhookId of webhookIds) {
@@ -422,7 +447,7 @@ export class FigmaWebhooksSDK {
         results.errors.push({
           webhookId,
           error: error.message,
-          code: error.code
+          code: error.code,
         });
       }
     }
@@ -438,7 +463,10 @@ export class FigmaWebhooksSDK {
    * @param planApiId - Plan API ID
    * @returns Matching webhooks
    */
-  async findWebhooksByEndpoint(endpoint: string, planApiId: string): Promise<any[]> {
+  async findWebhooksByEndpoint(
+    endpoint: string,
+    planApiId: string,
+  ): Promise<any[]> {
     const allWebhooks = await this.listAllWebhooks(planApiId);
     return allWebhooks.filter((webhook: any) => webhook.endpoint === endpoint);
   }
@@ -449,9 +477,14 @@ export class FigmaWebhooksSDK {
    * @param planApiId - Plan API ID
    * @returns Matching webhooks
    */
-  async findWebhooksByEventType(eventType: string, planApiId: string): Promise<any[]> {
+  async findWebhooksByEventType(
+    eventType: string,
+    planApiId: string,
+  ): Promise<any[]> {
     const allWebhooks = await this.listAllWebhooks(planApiId);
-    return allWebhooks.filter((webhook: any) => webhook.event_type === eventType);
+    return allWebhooks.filter(
+      (webhook: any) => webhook.event_type === eventType,
+    );
   }
 
   /**
@@ -461,7 +494,7 @@ export class FigmaWebhooksSDK {
    */
   async findInactiveWebhooks(planApiId: string): Promise<any[]> {
     const allWebhooks = await this.listAllWebhooks(planApiId);
-    return allWebhooks.filter((webhook: any) => webhook.status === 'PAUSED');
+    return allWebhooks.filter((webhook: any) => webhook.status === "PAUSED");
   }
 
   // === Convenience Methods ===
@@ -473,32 +506,32 @@ export class FigmaWebhooksSDK {
    */
   async testWebhookEndpoint(endpoint: string): Promise<any> {
     const testPayload = {
-      event_type: 'PING',
+      event_type: "PING",
       timestamp: new Date().toISOString(),
-      webhook_id: 'test'
+      webhook_id: "test",
     };
 
     try {
       // Use the global fetch for arbitrary (non-Figma) endpoints.
       const response: any = await globalThis.fetch(endpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-Figma-Event': 'PING'
+          "Content-Type": "application/json",
+          "X-Figma-Event": "PING",
         },
-        body: JSON.stringify(testPayload)
+        body: JSON.stringify(testPayload),
       });
 
       return {
         reachable: true,
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
+        headers: Object.fromEntries(response.headers.entries()),
       };
     } catch (error: any) {
       return {
         reachable: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -515,9 +548,15 @@ export class FigmaWebhooksSDK {
    * @param passcode - The webhook passcode used as the HMAC key
    * @returns Whether the signature is valid
    */
-  verifySignature(payload: string, signature: string, passcode: string): boolean {
+  verifySignature(
+    payload: string,
+    signature: string,
+    passcode: string,
+  ): boolean {
     if (!payload || !signature || !passcode) return false;
-    const expected = createHmac('sha256', passcode).update(payload).digest('hex');
+    const expected = createHmac("sha256", passcode)
+      .update(payload)
+      .digest("hex");
     const a = Buffer.from(expected);
     const b = Buffer.from(signature);
     if (a.length !== b.length) return false;
@@ -545,7 +584,7 @@ export class FigmaWebhooksSDK {
    */
   async close(): Promise<void> {
     // Clean up any resources if needed
-    this.logger.debug('FigmaWebhooksSDK closed');
+    this.logger.debug("FigmaWebhooksSDK closed");
   }
 }
 

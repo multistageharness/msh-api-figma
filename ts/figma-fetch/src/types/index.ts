@@ -5,7 +5,14 @@
 /**
  * HTTP methods supported by the fetch adapter
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+export type HttpMethod =
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "PATCH"
+  | "DELETE"
+  | "HEAD"
+  | "OPTIONS";
 
 /**
  * Request headers as key-value pairs
@@ -154,12 +161,16 @@ export interface FigmaApiClientConfig {
 /**
  * Request interceptor function
  */
-export type RequestInterceptor = (request: FetchRequest) => Promise<FetchRequest> | FetchRequest;
+export type RequestInterceptor = (
+  request: FetchRequest,
+) => Promise<FetchRequest> | FetchRequest;
 
 /**
  * Response interceptor function
  */
-export type ResponseInterceptor = (response: FetchResponse) => Promise<FetchResponse> | FetchResponse;
+export type ResponseInterceptor = (
+  response: FetchResponse,
+) => Promise<FetchResponse> | FetchResponse;
 
 /**
  * Error interceptor function
@@ -183,7 +194,7 @@ export interface ClientStats {
  * Health check result
  */
 export interface HealthCheckResult {
-  status: 'healthy' | 'unhealthy';
+  status: "healthy" | "unhealthy";
   timestamp: string;
   error?: string;
   /** Round-trip latency of the probe call, in milliseconds. */
@@ -207,12 +218,12 @@ export interface FigmaErrorMeta {
  * Error codes for Figma API errors
  */
 export enum ErrorCode {
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  TIMEOUT_ERROR = 'TIMEOUT_ERROR',
-  RATE_LIMIT_ERROR = 'RATE_LIMIT_ERROR',
-  AUTH_ERROR = 'AUTH_ERROR',
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  NOT_FOUND = 'NOT_FOUND',
-  SERVER_ERROR = 'SERVER_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  NETWORK_ERROR = "NETWORK_ERROR",
+  TIMEOUT_ERROR = "TIMEOUT_ERROR",
+  RATE_LIMIT_ERROR = "RATE_LIMIT_ERROR",
+  AUTH_ERROR = "AUTH_ERROR",
+  VALIDATION_ERROR = "VALIDATION_ERROR",
+  NOT_FOUND = "NOT_FOUND",
+  SERVER_ERROR = "SERVER_ERROR",
+  UNKNOWN_ERROR = "UNKNOWN_ERROR",
 }

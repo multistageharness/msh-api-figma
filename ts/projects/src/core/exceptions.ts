@@ -35,7 +35,7 @@ export class FigmaProjectsError extends Error {
       code: this.code,
       meta: this.meta,
       timestamp: this.timestamp,
-      stack: this.stack
+      stack: this.stack,
     };
   }
 }
@@ -45,7 +45,7 @@ export class FigmaProjectsError extends Error {
  */
 export class AuthenticationError extends FigmaProjectsError {
   constructor(message: string, meta: Record<string, any> = {}) {
-    super(message, 'AUTHENTICATION_ERROR', meta);
+    super(message, "AUTHENTICATION_ERROR", meta);
   }
 }
 
@@ -58,8 +58,8 @@ export class RateLimitError extends FigmaProjectsError {
   constructor(retryAfter: number, meta: Record<string, any> = {}) {
     super(
       `Rate limit exceeded. Retry after ${retryAfter} seconds`,
-      'RATE_LIMIT_EXCEEDED',
-      { retryAfter, ...meta }
+      "RATE_LIMIT_EXCEEDED",
+      { retryAfter, ...meta },
     );
     this.retryAfter = retryAfter;
   }
@@ -71,8 +71,15 @@ export class RateLimitError extends FigmaProjectsError {
 export class NetworkError extends FigmaProjectsError {
   originalError: any;
 
-  constructor(message: string, originalError: any, meta: Record<string, any> = {}) {
-    super(message, 'NETWORK_ERROR', { originalError: originalError?.message, ...meta });
+  constructor(
+    message: string,
+    originalError: any,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "NETWORK_ERROR", {
+      originalError: originalError?.message,
+      ...meta,
+    });
     this.originalError = originalError;
   }
 }
@@ -84,8 +91,13 @@ export class ValidationError extends FigmaProjectsError {
   field: any;
   value: any;
 
-  constructor(message: string, field: any, value: any, meta: Record<string, any> = {}) {
-    super(message, 'VALIDATION_ERROR', { field, value, ...meta });
+  constructor(
+    message: string,
+    field: any,
+    value: any,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "VALIDATION_ERROR", { field, value, ...meta });
     this.field = field;
     this.value = value;
   }
@@ -99,11 +111,11 @@ export class NotFoundError extends FigmaProjectsError {
   identifier: any;
 
   constructor(resource: any, identifier: any, meta: Record<string, any> = {}) {
-    super(
-      `${resource} not found: ${identifier}`,
-      'RESOURCE_NOT_FOUND',
-      { resource, identifier, ...meta }
-    );
+    super(`${resource} not found: ${identifier}`, "RESOURCE_NOT_FOUND", {
+      resource,
+      identifier,
+      ...meta,
+    });
     this.resource = resource;
     this.identifier = identifier;
   }
@@ -116,8 +128,13 @@ export class PermissionError extends FigmaProjectsError {
   resource: any;
   action: any;
 
-  constructor(message: string, resource: any, action: any, meta: Record<string, any> = {}) {
-    super(message, 'PERMISSION_DENIED', { resource, action, ...meta });
+  constructor(
+    message: string,
+    resource: any,
+    action: any,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "PERMISSION_DENIED", { resource, action, ...meta });
     this.resource = resource;
     this.action = action;
   }
@@ -132,12 +149,20 @@ export class HttpError extends FigmaProjectsError {
   url: any;
   responseData: any;
 
-  constructor(status: number, statusText: any, url: any, responseData: any, meta: Record<string, any> = {}) {
-    super(
-      `HTTP ${status}: ${statusText}`,
-      'HTTP_ERROR',
-      { status, statusText, url, responseData, ...meta }
-    );
+  constructor(
+    status: number,
+    statusText: any,
+    url: any,
+    responseData: any,
+    meta: Record<string, any> = {},
+  ) {
+    super(`HTTP ${status}: ${statusText}`, "HTTP_ERROR", {
+      status,
+      statusText,
+      url,
+      responseData,
+      ...meta,
+    });
     this.status = status;
     this.statusText = statusText;
     this.url = url;
@@ -176,8 +201,12 @@ export class HttpError extends FigmaProjectsError {
 export class ConfigurationError extends FigmaProjectsError {
   configField: any;
 
-  constructor(message: string, configField: any, meta: Record<string, any> = {}) {
-    super(message, 'CONFIGURATION_ERROR', { configField, ...meta });
+  constructor(
+    message: string,
+    configField: any,
+    meta: Record<string, any> = {},
+  ) {
+    super(message, "CONFIGURATION_ERROR", { configField, ...meta });
     this.configField = configField;
   }
 }
@@ -192,8 +221,8 @@ export class TimeoutError extends FigmaProjectsError {
   constructor(timeout: number, operation: any, meta: Record<string, any> = {}) {
     super(
       `Operation '${operation}' timed out after ${timeout}ms`,
-      'TIMEOUT_ERROR',
-      { timeout, operation, ...meta }
+      "TIMEOUT_ERROR",
+      { timeout, operation, ...meta },
     );
     this.timeout = timeout;
     this.operation = operation;
@@ -207,35 +236,44 @@ export class TimeoutError extends FigmaProjectsError {
  * @param {any} responseData - Parsed response data
  * @returns {FigmaProjectsError} Appropriate error instance
  */
-export function createErrorFromResponse(response: any, url: string, responseData: any = null): FigmaProjectsError {
+export function createErrorFromResponse(
+  response: any,
+  url: string,
+  responseData: any = null,
+): FigmaProjectsError {
   const { status, statusText } = response;
 
   // Handle specific status codes
   switch (status) {
     case 401:
-      return new AuthenticationError(
-        'Invalid or missing API token',
-        { status, url, responseData }
-      );
+      return new AuthenticationError("Invalid or missing API token", {
+        status,
+        url,
+        responseData,
+      });
 
     case 403:
       return new PermissionError(
-        'Insufficient permissions for this operation',
-        'unknown',
-        'read',
-        { status, url, responseData }
+        "Insufficient permissions for this operation",
+        "unknown",
+        "read",
+        { status, url, responseData },
       );
 
     case 404:
-      return new NotFoundError(
-        'Resource',
-        'unknown',
-        { status, url, responseData }
-      );
+      return new NotFoundError("Resource", "unknown", {
+        status,
+        url,
+        responseData,
+      });
 
     case 429: {
-      const retryAfter = response.headers.get('Retry-After') || '60';
-      return new RateLimitError(parseInt(retryAfter, 10), { status, url, responseData });
+      const retryAfter = response.headers.get("Retry-After") || "60";
+      return new RateLimitError(parseInt(retryAfter, 10), {
+        status,
+        url,
+        responseData,
+      });
     }
 
     case 500:
@@ -243,8 +281,8 @@ export function createErrorFromResponse(response: any, url: string, responseData
     case 503:
     case 504:
       return new HttpError(status, statusText, url, responseData, {
-        category: 'server_error',
-        retryable: true
+        category: "server_error",
+        retryable: true,
       });
 
     default:
@@ -291,7 +329,7 @@ export function getRetryDelay(error: Error, attempt: number): number {
   // Exponential backoff with jitter
   const baseDelay = 1000; // 1 second
   const maxDelay = 30000; // 30 seconds
-  const exponentialDelay = baseDelay * Math.pow(2, attempt);
+  const exponentialDelay = baseDelay * 2 ** attempt;
   const jitter = Math.random() * 1000; // 0-1 second jitter
 
   return Math.min(exponentialDelay + jitter, maxDelay);

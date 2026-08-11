@@ -3,58 +3,58 @@
  * Provides status information and simple connectivity tests
  */
 
-import Fastify from 'fastify';
-import { FigmaApiClient } from '@figma-api/fetch';
-import FigmaVariablesSDK from './index.js';
+import { FigmaApiClient } from "@figma-api/fetch";
+import Fastify from "fastify";
+import FigmaVariablesSDK from "./index.js";
 
 const fastify = Fastify({
-  logger: true
+  logger: true,
 });
 
 const PORT = process.env.PORT || 3008;
 const FIGMA_TOKEN = process.env.FIGMA_TOKEN;
 
 // Health check endpoint
-fastify.get('/', async (request, reply) => {
+fastify.get("/", async (_request, _reply) => {
   const hasToken = !!FIGMA_TOKEN;
 
   return {
-    module: 'figma-variables',
-    version: '1.0.0',
-    status: hasToken ? 'healthy' : 'unhealthy',
+    module: "figma-variables",
+    version: "1.0.0",
+    status: hasToken ? "healthy" : "unhealthy",
     environment: {
-      FIGMA_TOKEN: hasToken ? 'present' : 'missing'
+      FIGMA_TOKEN: hasToken ? "present" : "missing",
     },
     endpoints: [
-      'GET / - Health check and module information',
-      'GET /test - Test Figma API connectivity',
-      'GET /variables/:fileKey - Get all variables and collections (example)',
-      'POST /variables/:fileKey - Create variable (example)',
-      'PUT /variables/:fileKey/:variableId - Update variable (example)',
-      'DELETE /variables/:fileKey/:variableId - Delete variable (example)',
-      'GET /variables/:fileKey/export - Export variables (example)'
+      "GET / - Health check and module information",
+      "GET /test - Test Figma API connectivity",
+      "GET /variables/:fileKey - Get all variables and collections (example)",
+      "POST /variables/:fileKey - Create variable (example)",
+      "PUT /variables/:fileKey/:variableId - Update variable (example)",
+      "DELETE /variables/:fileKey/:variableId - Delete variable (example)",
+      "GET /variables/:fileKey/export - Export variables (example)",
     ],
     availableMethods: [
-      'getLocalVariables(fileKey)',
-      'getPublishedVariables(fileKey)',
-      'createVariable(fileKey, data)',
-      'updateVariable(fileKey, variableId, updates)',
-      'deleteVariable(fileKey, variableId)',
-      'createVariableCollection(fileKey, name)',
-      'createVariableAlias(fileKey, variableId, aliasId)',
-      'searchVariables(fileKey, query)',
-      'exportVariables(fileKey)'
+      "getLocalVariables(fileKey)",
+      "getPublishedVariables(fileKey)",
+      "createVariable(fileKey, data)",
+      "updateVariable(fileKey, variableId, updates)",
+      "deleteVariable(fileKey, variableId)",
+      "createVariableCollection(fileKey, name)",
+      "createVariableAlias(fileKey, variableId, aliasId)",
+      "searchVariables(fileKey, query)",
+      "exportVariables(fileKey)",
     ],
-    note: 'Requires Figma Enterprise plan'
+    note: "Requires Figma Enterprise plan",
   };
 });
 
 // Simple test endpoint
-fastify.get('/test', async (request, reply) => {
+fastify.get("/test", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -64,108 +64,118 @@ fastify.get('/test', async (request, reply) => {
     if (!testFileKey) {
       return {
         success: true,
-        message: 'SDK initialized successfully. Provide ?fileKey=YOUR_FILE_KEY to test API connectivity',
+        message:
+          "SDK initialized successfully. Provide ?fileKey=YOUR_FILE_KEY to test API connectivity",
         tokenPresent: true,
-        note: 'Requires Figma Enterprise plan'
+        note: "Requires Figma Enterprise plan",
       };
     }
 
-    const sdk: any = new FigmaVariablesSDK({ fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }) });
+    const sdk: any = new FigmaVariablesSDK({
+      fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }),
+    });
     const variables = await sdk.getLocalVariables(testFileKey);
 
     return {
       success: true,
-      message: 'Successfully connected to Figma API',
+      message: "Successfully connected to Figma API",
       fileKey: testFileKey,
       variablesCount: Object.keys(variables?.meta?.variables || {}).length,
-      collectionsCount: Object.keys(variables?.meta?.variableCollections || {}).length
+      collectionsCount: Object.keys(variables?.meta?.variableCollections || {})
+        .length,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
       type: error.constructor.name,
-      note: 'If you see 403/404 errors, ensure you have Figma Enterprise plan'
+      note: "If you see 403/404 errors, ensure you have Figma Enterprise plan",
     });
   }
 });
 
 // Example endpoint - Get all variables and collections
-fastify.get('/variables/:fileKey', async (request, reply) => {
+fastify.get("/variables/:fileKey", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
   try {
     const { fileKey } = request.params as any;
-    const sdk: any = new FigmaVariablesSDK({ fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }) });
+    const sdk: any = new FigmaVariablesSDK({
+      fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }),
+    });
     const variables = await sdk.getLocalVariables(fileKey);
 
     return {
       success: true,
       fileKey,
-      variables
+      variables,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Create variable
-fastify.post('/variables/:fileKey', async (request, reply) => {
+fastify.post("/variables/:fileKey", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
   try {
     const { fileKey } = request.params as any;
-    const { name, variableCollectionId, resolvedType, scopes } = request.body as any;
+    const { name, variableCollectionId, resolvedType, scopes } =
+      request.body as any;
 
     if (!name || !variableCollectionId || !resolvedType) {
       return reply.code(400).send({
         success: false,
-        error: 'Missing required fields: name, variableCollectionId, resolvedType'
+        error:
+          "Missing required fields: name, variableCollectionId, resolvedType",
       });
     }
 
-    const sdk = new FigmaVariablesSDK({ fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }) });
+    const sdk = new FigmaVariablesSDK({
+      fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }),
+    });
     const variable = await sdk.createVariable(fileKey, {
       name,
       variableCollectionId,
       resolvedType,
-      scopes: scopes || []
+      scopes: scopes || [],
     });
 
     return {
       success: true,
       fileKey,
-      variable
+      variable,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Update variable
-fastify.put('/variables/:fileKey/:variableId', async (request, reply) => {
+fastify.put("/variables/:fileKey/:variableId", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -173,81 +183,87 @@ fastify.put('/variables/:fileKey/:variableId', async (request, reply) => {
     const { fileKey, variableId } = request.params as any;
     const updates = request.body;
 
-    const sdk = new FigmaVariablesSDK({ fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }) });
+    const sdk = new FigmaVariablesSDK({
+      fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }),
+    });
     const variable = await sdk.updateVariable(fileKey, variableId, updates);
 
     return {
       success: true,
       fileKey,
       variableId,
-      variable
+      variable,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Delete variable
-fastify.delete('/variables/:fileKey/:variableId', async (request, reply) => {
+fastify.delete("/variables/:fileKey/:variableId", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
   try {
     const { fileKey, variableId } = request.params as any;
 
-    const sdk = new FigmaVariablesSDK({ fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }) });
+    const sdk = new FigmaVariablesSDK({
+      fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }),
+    });
     await sdk.deleteVariable(fileKey, variableId);
 
     return {
       success: true,
       fileKey,
       variableId,
-      message: 'Variable deleted successfully'
+      message: "Variable deleted successfully",
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Export variables
-fastify.get('/variables/:fileKey/export', async (request, reply) => {
+fastify.get("/variables/:fileKey/export", async (request, reply) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
   try {
     const { fileKey } = request.params as any;
-    const { format = 'json' } = request.query as any;
+    const { format = "json" } = request.query as any;
 
-    const sdk = new FigmaVariablesSDK({ fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }) });
+    const sdk = new FigmaVariablesSDK({
+      fetcher: new FigmaApiClient({ apiToken: FIGMA_TOKEN }),
+    });
     const exported = await sdk.exportVariables(fileKey, { format });
 
     return {
       success: true,
       fileKey,
       format,
-      exported
+      exported,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
@@ -255,11 +271,13 @@ fastify.get('/variables/:fileKey/export', async (request, reply) => {
 // Start server
 const start = async () => {
   try {
-    await fastify.listen({ port: PORT as number, host: '0.0.0.0' });
-    console.log(`\n🚀 Figma Variables Health Check Server running on port ${PORT}`);
+    await fastify.listen({ port: PORT as number, host: "0.0.0.0" });
+    console.log(
+      `\n🚀 Figma Variables Health Check Server running on port ${PORT}`,
+    );
     console.log(`   Health check: http://localhost:${PORT}/`);
     console.log(`   Test endpoint: http://localhost:${PORT}/test`);
-    console.log(`   FIGMA_TOKEN: ${FIGMA_TOKEN ? '✓ Set' : '✗ Not set'}`);
+    console.log(`   FIGMA_TOKEN: ${FIGMA_TOKEN ? "✓ Set" : "✗ Not set"}`);
     console.log(`   Note: Requires Figma Enterprise plan\n`);
   } catch (err) {
     fastify.log.error(err);

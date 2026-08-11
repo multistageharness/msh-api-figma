@@ -3,57 +3,57 @@
  * Provides status information and simple connectivity tests
  */
 
-import Fastify from 'fastify';
-import { FigmaApiClient } from '@figma-api/fetch';
-import FigmaWebhooksSDK from './index.js';
+import { FigmaApiClient } from "@figma-api/fetch";
+import Fastify from "fastify";
+import FigmaWebhooksSDK from "./index.js";
 
 const fastify = Fastify({
-  logger: true
+  logger: true,
 });
 
 const PORT: number = (process.env.PORT as unknown as number) || 3009;
 const FIGMA_TOKEN = process.env.FIGMA_TOKEN;
 
 // Health check endpoint
-fastify.get('/', async (request: any, reply: any) => {
+fastify.get("/", async (_request: any, _reply: any) => {
   const hasToken = !!FIGMA_TOKEN;
 
   return {
-    module: 'figma-webhooks',
-    version: '1.0.0',
-    status: hasToken ? 'healthy' : 'unhealthy',
+    module: "figma-webhooks",
+    version: "1.0.0",
+    status: hasToken ? "healthy" : "unhealthy",
     environment: {
-      FIGMA_TOKEN: hasToken ? 'present' : 'missing'
+      FIGMA_TOKEN: hasToken ? "present" : "missing",
     },
     endpoints: [
-      'GET / - Health check and module information',
-      'GET /test - Test Figma API connectivity',
-      'GET /webhooks/team/:teamId - List team webhooks (example)',
-      'POST /webhooks - Create webhook (example)',
-      'PUT /webhooks/:webhookId - Update webhook (example)',
-      'DELETE /webhooks/:webhookId - Delete webhook (example)',
-      'GET /webhooks/:webhookId/requests - Get webhook requests (example)',
-      'POST /webhooks/verify - Verify webhook payload (example)'
+      "GET / - Health check and module information",
+      "GET /test - Test Figma API connectivity",
+      "GET /webhooks/team/:teamId - List team webhooks (example)",
+      "POST /webhooks - Create webhook (example)",
+      "PUT /webhooks/:webhookId - Update webhook (example)",
+      "DELETE /webhooks/:webhookId - Delete webhook (example)",
+      "GET /webhooks/:webhookId/requests - Get webhook requests (example)",
+      "POST /webhooks/verify - Verify webhook payload (example)",
     ],
     availableMethods: [
-      'listWebhooks(teamId)',
-      'getWebhook(webhookId)',
-      'createWebhook(teamId, eventType, endpoint, options)',
-      'updateWebhook(webhookId, updates)',
-      'deleteWebhook(webhookId)',
-      'getWebhookRequests(webhookId)',
-      'testWebhook(webhookId)',
-      'verifyWebhookSignature(payload, signature, passcode)'
-    ]
+      "listWebhooks(teamId)",
+      "getWebhook(webhookId)",
+      "createWebhook(teamId, eventType, endpoint, options)",
+      "updateWebhook(webhookId, updates)",
+      "deleteWebhook(webhookId)",
+      "getWebhookRequests(webhookId)",
+      "testWebhook(webhookId)",
+      "verifyWebhookSignature(payload, signature, passcode)",
+    ],
   };
 });
 
 // Simple test endpoint
-fastify.get('/test', async (request: any, reply: any) => {
+fastify.get("/test", async (request: any, reply: any) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -63,8 +63,9 @@ fastify.get('/test', async (request: any, reply: any) => {
     if (!testTeamId) {
       return {
         success: true,
-        message: 'SDK initialized successfully. Provide ?teamId=YOUR_TEAM_ID to test API connectivity',
-        tokenPresent: true
+        message:
+          "SDK initialized successfully. Provide ?teamId=YOUR_TEAM_ID to test API connectivity",
+        tokenPresent: true,
       };
     }
 
@@ -74,25 +75,25 @@ fastify.get('/test', async (request: any, reply: any) => {
 
     return {
       success: true,
-      message: 'Successfully connected to Figma API',
+      message: "Successfully connected to Figma API",
       teamId: testTeamId,
-      webhooksCount: webhooks?.webhooks?.length || 0
+      webhooksCount: webhooks?.webhooks?.length || 0,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - List team webhooks
-fastify.get('/webhooks/team/:teamId', async (request: any, reply: any) => {
+fastify.get("/webhooks/team/:teamId", async (request: any, reply: any) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -105,23 +106,23 @@ fastify.get('/webhooks/team/:teamId', async (request: any, reply: any) => {
     return {
       success: true,
       teamId,
-      webhooks
+      webhooks,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Create webhook
-fastify.post('/webhooks', async (request: any, reply: any) => {
+fastify.post("/webhooks", async (request: any, reply: any) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -131,7 +132,7 @@ fastify.post('/webhooks', async (request: any, reply: any) => {
     if (!teamId || !eventType || !endpoint) {
       return reply.code(400).send({
         success: false,
-        error: 'Missing required fields: teamId, eventType, endpoint'
+        error: "Missing required fields: teamId, eventType, endpoint",
       });
     }
 
@@ -139,28 +140,28 @@ fastify.post('/webhooks', async (request: any, reply: any) => {
     const sdk: any = new FigmaWebhooksSDK({ fetcher });
     const webhook = await sdk.createWebhook(teamId, eventType, endpoint, {
       passcode,
-      description
+      description,
     });
 
     return {
       success: true,
-      webhook
+      webhook,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Update webhook
-fastify.put('/webhooks/:webhookId', async (request: any, reply: any) => {
+fastify.put("/webhooks/:webhookId", async (request: any, reply: any) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -175,23 +176,23 @@ fastify.put('/webhooks/:webhookId', async (request: any, reply: any) => {
     return {
       success: true,
       webhookId,
-      webhook
+      webhook,
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Delete webhook
-fastify.delete('/webhooks/:webhookId', async (request: any, reply: any) => {
+fastify.delete("/webhooks/:webhookId", async (request: any, reply: any) => {
   if (!FIGMA_TOKEN) {
     return reply.code(400).send({
       success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
+      error: "FIGMA_TOKEN environment variable not set",
     });
   }
 
@@ -205,73 +206,76 @@ fastify.delete('/webhooks/:webhookId', async (request: any, reply: any) => {
     return {
       success: true,
       webhookId,
-      message: 'Webhook deleted successfully'
+      message: "Webhook deleted successfully",
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
 
 // Example endpoint - Get webhook requests
-fastify.get('/webhooks/:webhookId/requests', async (request: any, reply: any) => {
-  if (!FIGMA_TOKEN) {
-    return reply.code(400).send({
-      success: false,
-      error: 'FIGMA_TOKEN environment variable not set'
-    });
-  }
+fastify.get(
+  "/webhooks/:webhookId/requests",
+  async (request: any, reply: any) => {
+    if (!FIGMA_TOKEN) {
+      return reply.code(400).send({
+        success: false,
+        error: "FIGMA_TOKEN environment variable not set",
+      });
+    }
 
-  try {
-    const { webhookId } = request.params;
+    try {
+      const { webhookId } = request.params;
 
-    const fetcher = new FigmaApiClient({ apiToken: FIGMA_TOKEN });
-    const sdk: any = new FigmaWebhooksSDK({ fetcher });
-    const requests = await sdk.getWebhookRequests(webhookId);
+      const fetcher = new FigmaApiClient({ apiToken: FIGMA_TOKEN });
+      const sdk: any = new FigmaWebhooksSDK({ fetcher });
+      const requests = await sdk.getWebhookRequests(webhookId);
 
-    return {
-      success: true,
-      webhookId,
-      requests
-    };
-  } catch (error: any) {
-    return reply.code(500).send({
-      success: false,
-      error: error.message,
-      type: error.constructor.name
-    });
-  }
-});
+      return {
+        success: true,
+        webhookId,
+        requests,
+      };
+    } catch (error: any) {
+      return reply.code(500).send({
+        success: false,
+        error: error.message,
+        type: error.constructor.name,
+      });
+    }
+  },
+);
 
 // Example endpoint - Verify webhook payload
-fastify.post('/webhooks/verify', async (request: any, reply: any) => {
+fastify.post("/webhooks/verify", async (request: any, reply: any) => {
   try {
     const { payload, signature, passcode } = request.body;
 
     if (!payload || !signature || !passcode) {
       return reply.code(400).send({
         success: false,
-        error: 'Missing required fields: payload, signature, passcode'
+        error: "Missing required fields: payload, signature, passcode",
       });
     }
 
-    const fetcher = new FigmaApiClient({ apiToken: FIGMA_TOKEN || 'dummy' });
+    const fetcher = new FigmaApiClient({ apiToken: FIGMA_TOKEN || "dummy" });
     const sdk = new FigmaWebhooksSDK({ fetcher });
     const isValid = sdk.verifySignature(payload, signature, passcode);
 
     return {
       success: true,
       isValid,
-      message: isValid ? 'Signature is valid' : 'Signature is invalid'
+      message: isValid ? "Signature is valid" : "Signature is invalid",
     };
   } catch (error: any) {
     return reply.code(500).send({
       success: false,
       error: error.message,
-      type: error.constructor.name
+      type: error.constructor.name,
     });
   }
 });
@@ -279,11 +283,13 @@ fastify.post('/webhooks/verify', async (request: any, reply: any) => {
 // Start server
 const start = async () => {
   try {
-    await fastify.listen({ port: PORT, host: '0.0.0.0' });
-    console.log(`\n🚀 Figma Webhooks Health Check Server running on port ${PORT}`);
+    await fastify.listen({ port: PORT, host: "0.0.0.0" });
+    console.log(
+      `\n🚀 Figma Webhooks Health Check Server running on port ${PORT}`,
+    );
     console.log(`   Health check: http://localhost:${PORT}/`);
     console.log(`   Test endpoint: http://localhost:${PORT}/test`);
-    console.log(`   FIGMA_TOKEN: ${FIGMA_TOKEN ? '✓ Set' : '✗ Not set'}\n`);
+    console.log(`   FIGMA_TOKEN: ${FIGMA_TOKEN ? "✓ Set" : "✗ Not set"}\n`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

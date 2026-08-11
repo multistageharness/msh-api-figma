@@ -5,31 +5,36 @@
  * Provides command-line access to components, component sets, and styles
  */
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import { FigmaApiClient } from '@figma-api/fetch';
-import { FigmaComponentsSDK } from './sdk.js';
+import { FigmaApiClient } from "@figma-api/fetch";
+import chalk from "chalk";
+import { Command } from "commander";
+import ora from "ora";
+import { FigmaComponentsSDK } from "./sdk.js";
 
 const program = new Command();
 
 // Configure CLI
 program
-  .name('figma-components')
-  .description('CLI for Figma Components, Component Sets, and Styles API')
-  .version('1.0.0')
-  .option('-k, --api-key <key>', 'Figma API token (or set FIGMA_API_TOKEN env var)')
-  .option('-v, --verbose', 'Verbose output')
-  .option('-j, --json', 'Output as JSON')
-  .option('--pretty', 'Pretty print JSON output');
+  .name("figma-components")
+  .description("CLI for Figma Components, Component Sets, and Styles API")
+  .version("1.0.0")
+  .option(
+    "-k, --api-key <key>",
+    "Figma API token (or set FIGMA_API_TOKEN env var)",
+  )
+  .option("-v, --verbose", "Verbose output")
+  .option("-j, --json", "Output as JSON")
+  .option("--pretty", "Pretty print JSON output");
 
 // Helper to get SDK instance
 function getSDK(options: any): FigmaComponentsSDK {
   const apiToken = options.apiKey || process.env.FIGMA_API_TOKEN;
 
   if (!apiToken) {
-    console.error(chalk.red('Error: Figma API token is required'));
-    console.error('Set via --api-key flag or FIGMA_API_TOKEN environment variable');
+    console.error(chalk.red("Error: Figma API token is required"));
+    console.error(
+      "Set via --api-key flag or FIGMA_API_TOKEN environment variable",
+    );
     process.exit(1);
   }
 
@@ -37,7 +42,9 @@ function getSDK(options: any): FigmaComponentsSDK {
 
   return new FigmaComponentsSDK({
     fetcher,
-    logger: options.verbose ? console : { debug: () => {}, warn: console.warn, error: console.error }
+    logger: options.verbose
+      ? console
+      : { debug: () => {}, warn: console.warn, error: console.error },
   });
 }
 
@@ -55,19 +62,19 @@ function outputResult(data: any, options: any): void {
 // ==========================================
 
 const componentsCmd = program
-  .command('components')
-  .description('Manage Figma components');
+  .command("components")
+  .description("Manage Figma components");
 
 // Get team components
 componentsCmd
-  .command('list-team <team-id>')
-  .description('List components in a team library')
-  .option('-s, --page-size <n>', 'Number of items per page', '30')
-  .option('-a, --after <cursor>', 'Pagination cursor (after)')
-  .option('-b, --before <cursor>', 'Pagination cursor (before)')
-  .option('--all', 'Get all components (handles pagination automatically)')
+  .command("list-team <team-id>")
+  .description("List components in a team library")
+  .option("-s, --page-size <n>", "Number of items per page", "30")
+  .option("-a, --after <cursor>", "Pagination cursor (after)")
+  .option("-b, --before <cursor>", "Pagination cursor (before)")
+  .option("--all", "Get all components (handles pagination automatically)")
   .action(async (teamId: string, options: any, command: any) => {
-    const spinner = ora('Fetching team components...').start();
+    const spinner = ora("Fetching team components...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
@@ -78,9 +85,12 @@ componentsCmd
         spinner.succeed(`Fetched ${components.length} components`);
       } else {
         const paginationOptions: any = {};
-        if (options.pageSize) paginationOptions.pageSize = parseInt(options.pageSize);
-        if (options.after) paginationOptions.after = parseInt(options.after);
-        if (options.before) paginationOptions.before = parseInt(options.before);
+        if (options.pageSize)
+          paginationOptions.pageSize = parseInt(options.pageSize, 10);
+        if (options.after)
+          paginationOptions.after = parseInt(options.after, 10);
+        if (options.before)
+          paginationOptions.before = parseInt(options.before, 10);
 
         result = await sdk.getTeamComponents(teamId, paginationOptions);
         spinner.succeed(`Fetched ${result.components?.length || 0} components`);
@@ -95,10 +105,10 @@ componentsCmd
 
 // Get file components
 componentsCmd
-  .command('list-file <file-key>')
-  .description('List components in a file library')
-  .action(async (fileKey: string, options: any, command: any) => {
-    const spinner = ora('Fetching file components...').start();
+  .command("list-file <file-key>")
+  .description("List components in a file library")
+  .action(async (fileKey: string, _options: any, command: any) => {
+    const spinner = ora("Fetching file components...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
@@ -113,15 +123,15 @@ componentsCmd
 
 // Get component by key
 componentsCmd
-  .command('get <key>')
-  .description('Get component metadata by key')
-  .action(async (key: string, options: any, command: any) => {
-    const spinner = ora('Fetching component...').start();
+  .command("get <key>")
+  .description("Get component metadata by key")
+  .action(async (key: string, _options: any, command: any) => {
+    const spinner = ora("Fetching component...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.getComponent(key);
-      spinner.succeed('Component fetched');
+      spinner.succeed("Component fetched");
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -131,34 +141,43 @@ componentsCmd
 
 // Search components
 componentsCmd
-  .command('search <team-id> <search-term>')
-  .description('Search components by name in team')
-  .action(async (teamId: string, searchTerm: string, options: any, command: any) => {
-    const spinner = ora(`Searching for "${searchTerm}"...`).start();
-    const sdk = getSDK(command.optsWithGlobals());
+  .command("search <team-id> <search-term>")
+  .description("Search components by name in team")
+  .action(
+    async (teamId: string, searchTerm: string, _options: any, command: any) => {
+      const spinner = ora(`Searching for "${searchTerm}"...`).start();
+      const sdk = getSDK(command.optsWithGlobals());
 
-    try {
-      const results = await sdk.searchComponents(teamId, searchTerm);
-      spinner.succeed(`Found ${results.length} matching components`);
-      outputResult({ results, total: results.length }, command.optsWithGlobals());
-    } catch (error: any) {
-      spinner.fail(`Failed: ${error.message}`);
-      process.exit(1);
-    }
-  });
+      try {
+        const results = await sdk.searchComponents(teamId, searchTerm);
+        spinner.succeed(`Found ${results.length} matching components`);
+        outputResult(
+          { results, total: results.length },
+          command.optsWithGlobals(),
+        );
+      } catch (error: any) {
+        spinner.fail(`Failed: ${error.message}`);
+        process.exit(1);
+      }
+    },
+  );
 
 // Batch get components
 componentsCmd
-  .command('batch-get')
-  .description('Get multiple components by keys')
-  .requiredOption('-k, --keys <keys...>', 'Component keys (space separated)')
+  .command("batch-get")
+  .description("Get multiple components by keys")
+  .requiredOption("-k, --keys <keys...>", "Component keys (space separated)")
   .action(async (options: any, command: any) => {
-    const spinner = ora(`Fetching ${options.keys.length} components...`).start();
+    const spinner = ora(
+      `Fetching ${options.keys.length} components...`,
+    ).start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.batchGetComponents(options.keys);
-      spinner.succeed(`Batch operation complete: ${result.successful.length} successful, ${result.failed.length} failed`);
+      spinner.succeed(
+        `Batch operation complete: ${result.successful.length} successful, ${result.failed.length} failed`,
+      );
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -171,19 +190,19 @@ componentsCmd
 // ==========================================
 
 const componentSetsCmd = program
-  .command('component-sets')
-  .description('Manage Figma component sets');
+  .command("component-sets")
+  .description("Manage Figma component sets");
 
 // Get team component sets
 componentSetsCmd
-  .command('list-team <team-id>')
-  .description('List component sets in a team library')
-  .option('-s, --page-size <n>', 'Number of items per page', '30')
-  .option('-a, --after <cursor>', 'Pagination cursor (after)')
-  .option('-b, --before <cursor>', 'Pagination cursor (before)')
-  .option('--all', 'Get all component sets (handles pagination automatically)')
+  .command("list-team <team-id>")
+  .description("List component sets in a team library")
+  .option("-s, --page-size <n>", "Number of items per page", "30")
+  .option("-a, --after <cursor>", "Pagination cursor (after)")
+  .option("-b, --before <cursor>", "Pagination cursor (before)")
+  .option("--all", "Get all component sets (handles pagination automatically)")
   .action(async (teamId: string, options: any, command: any) => {
-    const spinner = ora('Fetching team component sets...').start();
+    const spinner = ora("Fetching team component sets...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
@@ -194,12 +213,17 @@ componentSetsCmd
         spinner.succeed(`Fetched ${componentSets.length} component sets`);
       } else {
         const paginationOptions: any = {};
-        if (options.pageSize) paginationOptions.pageSize = parseInt(options.pageSize);
-        if (options.after) paginationOptions.after = parseInt(options.after);
-        if (options.before) paginationOptions.before = parseInt(options.before);
+        if (options.pageSize)
+          paginationOptions.pageSize = parseInt(options.pageSize, 10);
+        if (options.after)
+          paginationOptions.after = parseInt(options.after, 10);
+        if (options.before)
+          paginationOptions.before = parseInt(options.before, 10);
 
         result = await sdk.getTeamComponentSets(teamId, paginationOptions);
-        spinner.succeed(`Fetched ${result.component_sets?.length || 0} component sets`);
+        spinner.succeed(
+          `Fetched ${result.component_sets?.length || 0} component sets`,
+        );
       }
 
       outputResult(result, command.optsWithGlobals());
@@ -211,15 +235,17 @@ componentSetsCmd
 
 // Get file component sets
 componentSetsCmd
-  .command('list-file <file-key>')
-  .description('List component sets in a file library')
-  .action(async (fileKey: string, options: any, command: any) => {
-    const spinner = ora('Fetching file component sets...').start();
+  .command("list-file <file-key>")
+  .description("List component sets in a file library")
+  .action(async (fileKey: string, _options: any, command: any) => {
+    const spinner = ora("Fetching file component sets...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.getFileComponentSets(fileKey);
-      spinner.succeed(`Fetched ${result.component_sets?.length || 0} component sets`);
+      spinner.succeed(
+        `Fetched ${result.component_sets?.length || 0} component sets`,
+      );
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -229,15 +255,15 @@ componentSetsCmd
 
 // Get component set by key
 componentSetsCmd
-  .command('get <key>')
-  .description('Get component set metadata by key')
-  .action(async (key: string, options: any, command: any) => {
-    const spinner = ora('Fetching component set...').start();
+  .command("get <key>")
+  .description("Get component set metadata by key")
+  .action(async (key: string, _options: any, command: any) => {
+    const spinner = ora("Fetching component set...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.getComponentSet(key);
-      spinner.succeed('Component set fetched');
+      spinner.succeed("Component set fetched");
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -247,16 +273,23 @@ componentSetsCmd
 
 // Batch get component sets
 componentSetsCmd
-  .command('batch-get')
-  .description('Get multiple component sets by keys')
-  .requiredOption('-k, --keys <keys...>', 'Component set keys (space separated)')
+  .command("batch-get")
+  .description("Get multiple component sets by keys")
+  .requiredOption(
+    "-k, --keys <keys...>",
+    "Component set keys (space separated)",
+  )
   .action(async (options: any, command: any) => {
-    const spinner = ora(`Fetching ${options.keys.length} component sets...`).start();
+    const spinner = ora(
+      `Fetching ${options.keys.length} component sets...`,
+    ).start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.batchGetComponentSets(options.keys);
-      spinner.succeed(`Batch operation complete: ${result.successful.length} successful, ${result.failed.length} failed`);
+      spinner.succeed(
+        `Batch operation complete: ${result.successful.length} successful, ${result.failed.length} failed`,
+      );
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -268,21 +301,22 @@ componentSetsCmd
 // Styles Commands
 // ==========================================
 
-const stylesCmd = program
-  .command('styles')
-  .description('Manage Figma styles');
+const stylesCmd = program.command("styles").description("Manage Figma styles");
 
 // Get team styles
 stylesCmd
-  .command('list-team <team-id>')
-  .description('List styles in a team library')
-  .option('-s, --page-size <n>', 'Number of items per page', '30')
-  .option('-a, --after <cursor>', 'Pagination cursor (after)')
-  .option('-b, --before <cursor>', 'Pagination cursor (before)')
-  .option('-t, --type <type>', 'Filter by style type (FILL, TEXT, EFFECT, GRID)')
-  .option('--all', 'Get all styles (handles pagination automatically)')
+  .command("list-team <team-id>")
+  .description("List styles in a team library")
+  .option("-s, --page-size <n>", "Number of items per page", "30")
+  .option("-a, --after <cursor>", "Pagination cursor (after)")
+  .option("-b, --before <cursor>", "Pagination cursor (before)")
+  .option(
+    "-t, --type <type>",
+    "Filter by style type (FILL, TEXT, EFFECT, GRID)",
+  )
+  .option("--all", "Get all styles (handles pagination automatically)")
   .action(async (teamId: string, options: any, command: any) => {
-    const spinner = ora('Fetching team styles...').start();
+    const spinner = ora("Fetching team styles...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
@@ -299,15 +333,20 @@ stylesCmd
         spinner.succeed(`Fetched ${styles.length} styles`);
       } else {
         const paginationOptions: any = {};
-        if (options.pageSize) paginationOptions.pageSize = parseInt(options.pageSize);
-        if (options.after) paginationOptions.after = parseInt(options.after);
-        if (options.before) paginationOptions.before = parseInt(options.before);
+        if (options.pageSize)
+          paginationOptions.pageSize = parseInt(options.pageSize, 10);
+        if (options.after)
+          paginationOptions.after = parseInt(options.after, 10);
+        if (options.before)
+          paginationOptions.before = parseInt(options.before, 10);
 
         result = await sdk.getTeamStyles(teamId, paginationOptions);
 
         // Filter by type if specified
         if (options.type && result.styles) {
-          result.styles = result.styles.filter((style: any) => style.style_type === options.type);
+          result.styles = result.styles.filter(
+            (style: any) => style.style_type === options.type,
+          );
         }
 
         spinner.succeed(`Fetched ${result.styles?.length || 0} styles`);
@@ -322,10 +361,10 @@ stylesCmd
 
 // Get file styles
 stylesCmd
-  .command('list-file <file-key>')
-  .description('List styles in a file library')
-  .action(async (fileKey: string, options: any, command: any) => {
-    const spinner = ora('Fetching file styles...').start();
+  .command("list-file <file-key>")
+  .description("List styles in a file library")
+  .action(async (fileKey: string, _options: any, command: any) => {
+    const spinner = ora("Fetching file styles...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
@@ -340,15 +379,15 @@ stylesCmd
 
 // Get style by key
 stylesCmd
-  .command('get <key>')
-  .description('Get style metadata by key')
-  .action(async (key: string, options: any, command: any) => {
-    const spinner = ora('Fetching style...').start();
+  .command("get <key>")
+  .description("Get style metadata by key")
+  .action(async (key: string, _options: any, command: any) => {
+    const spinner = ora("Fetching style...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.getStyle(key);
-      spinner.succeed('Style fetched');
+      spinner.succeed("Style fetched");
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -358,16 +397,18 @@ stylesCmd
 
 // Batch get styles
 stylesCmd
-  .command('batch-get')
-  .description('Get multiple styles by keys')
-  .requiredOption('-k, --keys <keys...>', 'Style keys (space separated)')
+  .command("batch-get")
+  .description("Get multiple styles by keys")
+  .requiredOption("-k, --keys <keys...>", "Style keys (space separated)")
   .action(async (options: any, command: any) => {
     const spinner = ora(`Fetching ${options.keys.length} styles...`).start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.batchGetStyles(options.keys);
-      spinner.succeed(`Batch operation complete: ${result.successful.length} successful, ${result.failed.length} failed`);
+      spinner.succeed(
+        `Batch operation complete: ${result.successful.length} successful, ${result.failed.length} failed`,
+      );
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -380,20 +421,22 @@ stylesCmd
 // ==========================================
 
 const libraryCmd = program
-  .command('library')
-  .description('Manage complete library content');
+  .command("library")
+  .description("Manage complete library content");
 
 // Get team library
 libraryCmd
-  .command('get-team <team-id>')
-  .description('Get complete team library (components, component sets, styles)')
-  .action(async (teamId: string, options: any, command: any) => {
-    const spinner = ora('Fetching complete team library...').start();
+  .command("get-team <team-id>")
+  .description("Get complete team library (components, component sets, styles)")
+  .action(async (teamId: string, _options: any, command: any) => {
+    const spinner = ora("Fetching complete team library...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.getTeamLibrary(teamId);
-      spinner.succeed(`Fetched library: ${result.summary.componentsCount} components, ${result.summary.componentSetsCount} component sets, ${result.summary.stylesCount} styles`);
+      spinner.succeed(
+        `Fetched library: ${result.summary.componentsCount} components, ${result.summary.componentSetsCount} component sets, ${result.summary.stylesCount} styles`,
+      );
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -403,15 +446,17 @@ libraryCmd
 
 // Get file library
 libraryCmd
-  .command('get-file <file-key>')
-  .description('Get complete file library (components, component sets, styles)')
-  .action(async (fileKey: string, options: any, command: any) => {
-    const spinner = ora('Fetching complete file library...').start();
+  .command("get-file <file-key>")
+  .description("Get complete file library (components, component sets, styles)")
+  .action(async (fileKey: string, _options: any, command: any) => {
+    const spinner = ora("Fetching complete file library...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.getFileLibrary(fileKey);
-      spinner.succeed(`Fetched library: ${result.summary.componentsCount} components, ${result.summary.componentSetsCount} component sets, ${result.summary.stylesCount} styles`);
+      spinner.succeed(
+        `Fetched library: ${result.summary.componentsCount} components, ${result.summary.componentSetsCount} component sets, ${result.summary.stylesCount} styles`,
+      );
       outputResult(result, command.optsWithGlobals());
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
@@ -421,10 +466,10 @@ libraryCmd
 
 // Get library analytics
 libraryCmd
-  .command('analytics <team-id>')
-  .description('Get team library analytics')
-  .action(async (teamId: string, options: any, command: any) => {
-    const spinner = ora('Analyzing team library...').start();
+  .command("analytics <team-id>")
+  .description("Get team library analytics")
+  .action(async (teamId: string, _options: any, command: any) => {
+    const spinner = ora("Analyzing team library...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
@@ -439,23 +484,31 @@ libraryCmd
 
 // Export library
 libraryCmd
-  .command('export <team-id>')
-  .description('Export team library as structured data')
-  .option('--no-metadata', 'Exclude metadata from export')
-  .option('-f, --format <format>', 'Export format (json)', 'json')
+  .command("export <team-id>")
+  .description("Export team library as structured data")
+  .option("--no-metadata", "Exclude metadata from export")
+  .option("-f, --format <format>", "Export format (json)", "json")
   .action(async (teamId: string, options: any, command: any) => {
-    const spinner = ora('Exporting team library...').start();
+    const spinner = ora("Exporting team library...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const result = await sdk.exportTeamLibrary(teamId, {
         includeMetadata: options.metadata !== false,
-        format: options.format
+        format: options.format,
       });
-      spinner.succeed('Library exported');
+      spinner.succeed("Library exported");
 
       if (command.optsWithGlobals().json || command.optsWithGlobals().pretty) {
-        console.log(typeof result === 'string' ? result : JSON.stringify(result, null, command.optsWithGlobals().pretty ? 2 : 0));
+        console.log(
+          typeof result === "string"
+            ? result
+            : JSON.stringify(
+                result,
+                null,
+                command.optsWithGlobals().pretty ? 2 : 0,
+              ),
+        );
       } else {
         console.log(result);
       }
@@ -470,18 +523,18 @@ libraryCmd
 // ==========================================
 
 const searchCmd = program
-  .command('search')
-  .description('Search and filter library content');
+  .command("search")
+  .description("Search and filter library content");
 
 // Find components
 searchCmd
-  .command('components <team-id>')
-  .description('Find components by pattern')
-  .option('-n, --name <pattern>', 'Name pattern (partial match)')
-  .option('-d, --description <pattern>', 'Description pattern (partial match)')
-  .option('-t, --node-type <type>', 'Node type filter')
+  .command("components <team-id>")
+  .description("Find components by pattern")
+  .option("-n, --name <pattern>", "Name pattern (partial match)")
+  .option("-d, --description <pattern>", "Description pattern (partial match)")
+  .option("-t, --node-type <type>", "Node type filter")
   .action(async (teamId: string, options: any, command: any) => {
-    const spinner = ora('Searching components...').start();
+    const spinner = ora("Searching components...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
@@ -492,7 +545,10 @@ searchCmd
 
       const results = await sdk.findComponents(teamId, pattern);
       spinner.succeed(`Found ${results.length} matching components`);
-      outputResult({ results, total: results.length }, command.optsWithGlobals());
+      outputResult(
+        { results, total: results.length },
+        command.optsWithGlobals(),
+      );
     } catch (error: any) {
       spinner.fail(`Failed: ${error.message}`);
       process.exit(1);
@@ -501,19 +557,19 @@ searchCmd
 
 // Health check command
 program
-  .command('health')
-  .description('Check API connectivity')
-  .action(async (options: any, command: any) => {
-    const spinner = ora('Checking API health...').start();
+  .command("health")
+  .description("Check API connectivity")
+  .action(async (_options: any, command: any) => {
+    const spinner = ora("Checking API health...").start();
     const sdk = getSDK(command.optsWithGlobals());
 
     try {
       const isHealthy = await sdk.healthCheck();
       if (isHealthy) {
-        spinner.succeed('API is healthy');
+        spinner.succeed("API is healthy");
         process.exit(0);
       } else {
-        spinner.fail('API health check failed');
+        spinner.fail("API health check failed");
         process.exit(1);
       }
     } catch (error: any) {
@@ -524,9 +580,9 @@ program
 
 // Stats command
 program
-  .command('stats')
-  .description('Show SDK statistics')
-  .action(async (options: any, command: any) => {
+  .command("stats")
+  .description("Show SDK statistics")
+  .action(async (_options: any, command: any) => {
     const sdk = getSDK(command.optsWithGlobals());
     const stats = sdk.getStats();
 

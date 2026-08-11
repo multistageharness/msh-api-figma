@@ -10,35 +10,37 @@
  * injected by a consumer without the SDK taking a hard dependency on it.
  */
 
-import { z, ZodError, ZodSchema } from 'zod';
-import { ValidationError } from '../errors/index.js';
+import { ZodError, type ZodSchema, z } from "zod";
+import { ValidationError } from "../errors/index.js";
 
 /** A Figma file key: alphanumeric plus `-` and `_`. */
 export const FileKeySchema = z
   .string()
-  .min(1, 'File key is required')
-  .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid file key format');
+  .min(1, "File key is required")
+  .regex(/^[a-zA-Z0-9_-]+$/, "Invalid file key format");
 
 /** A single Figma node id (digits and colons, e.g. `12:345`). */
 export const NodeIdSchema = z
   .string()
-  .min(1, 'Node id is required')
-  .regex(/^[\d:]+$/, 'Invalid node id format');
+  .min(1, "Node id is required")
+  .regex(/^[\d:]+$/, "Invalid node id format");
 
 /** One or more node ids: a comma string or an array, normalized to a string[]. */
 export const NodeIdsSchema = z
   .union([z.string().min(1), z.array(z.string()).min(1)])
-  .transform((value) => (Array.isArray(value) ? value : value.split(',')).map((s) => s.trim()))
-  .pipe(z.array(NodeIdSchema).min(1, 'At least one node id is required'));
+  .transform((value) =>
+    (Array.isArray(value) ? value : value.split(",")).map((s) => s.trim()),
+  )
+  .pipe(z.array(NodeIdSchema).min(1, "At least one node id is required"));
 
 /** Image render scale: 0.01 .. 4. */
 export const ImageScaleSchema = z.coerce.number().min(0.01).max(4);
 
 /** Image render format. */
-export const ImageFormatSchema = z.enum(['jpg', 'png', 'svg', 'pdf']);
+export const ImageFormatSchema = z.enum(["jpg", "png", "svg", "pdf"]);
 
 /** A team id / project id: a non-empty string. */
-export const IdSchema = z.string().trim().min(1, 'Id is required');
+export const IdSchema = z.string().trim().min(1, "Id is required");
 
 /**
  * Parse a value against a schema, throwing the SDK's own `ValidationError`
@@ -48,27 +50,37 @@ export const IdSchema = z.string().trim().min(1, 'Id is required');
  * @param value - The value to validate
  * @param field - Optional field name for the error
  */
-export function parseOrThrow<T>(schema: ZodSchema<T>, value: unknown, field?: string): T {
+export function parseOrThrow<T>(
+  schema: ZodSchema<T>,
+  value: unknown,
+  field?: string,
+): T {
   try {
     return schema.parse(value);
   } catch (error) {
     if (error instanceof ZodError) {
       const first = error.issues[0];
-      const path = field || first?.path.join('.') || undefined;
-      throw new ValidationError(first?.message || 'Validation failed', path);
+      const path = field || first?.path.join(".") || undefined;
+      throw new ValidationError(first?.message || "Validation failed", path);
     }
     throw error;
   }
 }
 
 /** Non-throwing variant: returns `{ success, data | error }`. */
-export function safeParse<T>(schema: ZodSchema<T>, value: unknown): { success: true; data: T } | { success: false; error: ValidationError } {
+export function safeParse<T>(
+  schema: ZodSchema<T>,
+  value: unknown,
+): { success: true; data: T } | { success: false; error: ValidationError } {
   const result = schema.safeParse(value);
   if (result.success) return { success: true, data: result.data };
   const first = result.error.issues[0];
   return {
     success: false,
-    error: new ValidationError(first?.message || 'Validation failed', first?.path.join('.') || undefined),
+    error: new ValidationError(
+      first?.message || "Validation failed",
+      first?.path.join(".") || undefined,
+    ),
   };
 }
 
@@ -83,7 +95,9 @@ type NodeTreeValidator = (doc: unknown) => unknown;
 let nodeTreeValidator: NodeTreeValidator | null = null;
 
 /** Inject the node-tree validator (e.g. from `primitive-figma-node-types`). */
-export function setNodeTreeValidator(validator: NodeTreeValidator | null): void {
+export function setNodeTreeValidator(
+  validator: NodeTreeValidator | null,
+): void {
   nodeTreeValidator = validator;
 }
 

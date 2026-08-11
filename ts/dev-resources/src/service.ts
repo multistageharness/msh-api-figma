@@ -19,8 +19,8 @@ import type {
   GetDevResourcesResponse,
   Logger,
   UpdateDevResourceInput,
-  UpdateDevResourcesResponse
-} from './types.js';
+  UpdateDevResourcesResponse,
+} from "./types.js";
 
 export interface FigmaDevResourcesServiceOptions {
   fetcher?: any;
@@ -45,10 +45,12 @@ export class FigmaDevResourcesService {
   constructor({
     fetcher,
     logger = console,
-    validateInputs = true
+    validateInputs = true,
   }: FigmaDevResourcesServiceOptions = {}) {
     if (!fetcher) {
-      throw new Error('fetcher parameter is required. Please create and pass a FigmaApiClient instance.');
+      throw new Error(
+        "fetcher parameter is required. Please create and pass a FigmaApiClient instance.",
+      );
     }
 
     this.fetcher = fetcher;
@@ -63,29 +65,39 @@ export class FigmaDevResourcesService {
    * @param {string|string[]} [options.nodeIds] - Node IDs to filter by
    * @returns {Promise<Object>} Response with dev_resources array
    */
-  async getDevResources(fileKey: string, options: GetDevResourcesOptions = {}): Promise<GetDevResourcesResponse> {
+  async getDevResources(
+    fileKey: string,
+    options: GetDevResourcesOptions = {},
+  ): Promise<GetDevResourcesResponse> {
     if (this.validateInputs && !fileKey) {
-      throw new Error('fileKey is required');
+      throw new Error("fileKey is required");
     }
 
     const params: Record<string, string> = {};
     if (options.nodeIds) {
-      const nodeIds = Array.isArray(options.nodeIds) ? options.nodeIds : [options.nodeIds];
-      params.node_ids = nodeIds.join(',');
+      const nodeIds = Array.isArray(options.nodeIds)
+        ? options.nodeIds
+        : [options.nodeIds];
+      params.node_ids = nodeIds.join(",");
     }
 
     try {
       const queryString = new URLSearchParams(params).toString();
-      const path = `/v1/files/${fileKey}/dev_resources${queryString ? `?${queryString}` : ''}`;
+      const path = `/v1/files/${fileKey}/dev_resources${queryString ? `?${queryString}` : ""}`;
 
       const response = await this.fetcher.request(path, {
-        method: 'GET'
+        method: "GET",
       });
 
-      this.logger.debug(`Retrieved ${response.dev_resources?.length || 0} dev resources for file ${fileKey}`);
+      this.logger.debug(
+        `Retrieved ${response.dev_resources?.length || 0} dev resources for file ${fileKey}`,
+      );
       return response;
     } catch (error) {
-      this.logger.error(`Failed to get dev resources for file ${fileKey}:`, error);
+      this.logger.error(
+        `Failed to get dev resources for file ${fileKey}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -99,10 +111,12 @@ export class FigmaDevResourcesService {
    * @param {string} devResources[].url - Resource URL
    * @returns {Promise<Object>} Response with links_created and errors arrays
    */
-  async createDevResources(devResources: CreateDevResourceInput[]): Promise<CreateDevResourcesResponse> {
+  async createDevResources(
+    devResources: CreateDevResourceInput[],
+  ): Promise<CreateDevResourcesResponse> {
     if (this.validateInputs) {
       if (!Array.isArray(devResources) || devResources.length === 0) {
-        throw new Error('devResources must be a non-empty array');
+        throw new Error("devResources must be a non-empty array");
       }
 
       devResources.forEach((resource, index) => {
@@ -122,15 +136,17 @@ export class FigmaDevResourcesService {
     }
 
     try {
-      const response = await this.fetcher.request('/v1/dev_resources', {
-        method: 'POST',
-        body: JSON.stringify({ dev_resources: devResources })
+      const response = await this.fetcher.request("/v1/dev_resources", {
+        method: "POST",
+        body: JSON.stringify({ dev_resources: devResources }),
       });
 
-      this.logger.debug(`Created ${response.links_created?.length || 0} dev resources`);
+      this.logger.debug(
+        `Created ${response.links_created?.length || 0} dev resources`,
+      );
       return response;
     } catch (error) {
-      this.logger.error('Failed to create dev resources:', error);
+      this.logger.error("Failed to create dev resources:", error);
       throw error;
     }
   }
@@ -143,10 +159,12 @@ export class FigmaDevResourcesService {
    * @param {string} [updates[].url] - New URL
    * @returns {Promise<Object>} Response with links_updated and errors arrays
    */
-  async updateDevResources(updates: UpdateDevResourceInput[]): Promise<UpdateDevResourcesResponse> {
+  async updateDevResources(
+    updates: UpdateDevResourceInput[],
+  ): Promise<UpdateDevResourcesResponse> {
     if (this.validateInputs) {
       if (!Array.isArray(updates) || updates.length === 0) {
-        throw new Error('updates must be a non-empty array');
+        throw new Error("updates must be a non-empty array");
       }
 
       updates.forEach((update, index) => {
@@ -160,15 +178,17 @@ export class FigmaDevResourcesService {
     }
 
     try {
-      const response = await this.fetcher.request('/v1/dev_resources', {
-        method: 'PUT',
-        body: JSON.stringify({ dev_resources: updates })
+      const response = await this.fetcher.request("/v1/dev_resources", {
+        method: "PUT",
+        body: JSON.stringify({ dev_resources: updates }),
       });
 
-      this.logger.debug(`Updated ${response.links_updated?.length || 0} dev resources`);
+      this.logger.debug(
+        `Updated ${response.links_updated?.length || 0} dev resources`,
+      );
       return response;
     } catch (error) {
-      this.logger.error('Failed to update dev resources:', error);
+      this.logger.error("Failed to update dev resources:", error);
       throw error;
     }
   }
@@ -179,24 +199,35 @@ export class FigmaDevResourcesService {
    * @param {string} devResourceId - Dev resource ID
    * @returns {Promise<void>}
    */
-  async deleteDevResource(fileKey: string, devResourceId: string): Promise<void> {
+  async deleteDevResource(
+    fileKey: string,
+    devResourceId: string,
+  ): Promise<void> {
     if (this.validateInputs) {
       if (!fileKey) {
-        throw new Error('fileKey is required');
+        throw new Error("fileKey is required");
       }
       if (!devResourceId) {
-        throw new Error('devResourceId is required');
+        throw new Error("devResourceId is required");
       }
     }
 
     try {
-      await this.fetcher.request(`/v1/files/${fileKey}/dev_resources/${devResourceId}`, {
-        method: 'DELETE'
-      });
+      await this.fetcher.request(
+        `/v1/files/${fileKey}/dev_resources/${devResourceId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
-      this.logger.debug(`Deleted dev resource ${devResourceId} from file ${fileKey}`);
+      this.logger.debug(
+        `Deleted dev resource ${devResourceId} from file ${fileKey}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to delete dev resource ${devResourceId}:`, error);
+      this.logger.error(
+        `Failed to delete dev resource ${devResourceId}:`,
+        error,
+      );
       throw error;
     }
   }

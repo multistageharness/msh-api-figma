@@ -3,7 +3,7 @@
  * Implements LRU (Least Recently Used) cache with TTL support
  */
 
-import { CacheConfig, CacheStats, CacheEntry } from '../types/index.js';
+import type { CacheConfig, CacheEntry, CacheStats } from "../types/index.js";
 
 /**
  * RequestCache class
@@ -27,7 +27,7 @@ export class RequestCache<T = any> {
    */
   private generateKey(url: string, options: any = {}): string {
     const params = new URLSearchParams(options.params || {}).toString();
-    return `${url}${params ? '?' + params : ''}`;
+    return `${url}${params ? `?${params}` : ""}`;
   }
 
   /**

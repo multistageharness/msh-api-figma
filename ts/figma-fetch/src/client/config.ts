@@ -10,10 +10,10 @@
  */
 
 /** Canonical Figma REST base URL. */
-export const DEFAULT_BASE_URL = 'https://api.figma.com';
+export const DEFAULT_BASE_URL = "https://api.figma.com";
 
 /** The personal-access-token header Figma expects. */
-export const FIGMA_TOKEN_HEADER = 'X-Figma-Token';
+export const FIGMA_TOKEN_HEADER = "X-Figma-Token";
 
 /**
  * Accepted environment variable names for the Figma personal access token, in
@@ -21,9 +21,9 @@ export const FIGMA_TOKEN_HEADER = 'X-Figma-Token';
  * call site in the app (the canonical app accessor previously dropped it).
  */
 export const FIGMA_TOKEN_ENV_VARS = [
-  'FIGMA_TOKEN',
-  'FIGMA_API_TOKEN',
-  'FIGMA_ACCESS_TOKEN',
+  "FIGMA_TOKEN",
+  "FIGMA_API_TOKEN",
+  "FIGMA_ACCESS_TOKEN",
 ] as const;
 
 /**
@@ -36,14 +36,14 @@ export const FIGMA_TOKEN_ENV_VARS = [
  */
 export function resolveFigmaToken(
   explicit?: string,
-  envSource: Record<string, string | undefined> = process.env
+  envSource: Record<string, string | undefined> = process.env,
 ): string {
   if (explicit) return explicit;
   for (const name of FIGMA_TOKEN_ENV_VARS) {
     const value = envSource[name];
     if (value) return value;
   }
-  return '';
+  return "";
 }
 
 /**
@@ -52,9 +52,12 @@ export function resolveFigmaToken(
  */
 export function resolveBaseUrl(
   explicit?: string,
-  envSource: Record<string, string | undefined> = process.env
+  envSource: Record<string, string | undefined> = process.env,
 ): string {
-  return (explicit || envSource.FIGMA_API_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, '');
+  return (explicit || envSource.FIGMA_API_BASE_URL || DEFAULT_BASE_URL).replace(
+    /\/+$/,
+    "",
+  );
 }
 
 /**
@@ -67,8 +70,11 @@ export interface EgressConfig {
 }
 
 /** Parse a boolean-ish env value; absent → default. */
-function parseBoolEnv(value: string | undefined, defaultValue: boolean): boolean {
-  if (value === undefined || value === '') return defaultValue;
+function parseBoolEnv(
+  value: string | undefined,
+  defaultValue: boolean,
+): boolean {
+  if (value === undefined || value === "") return defaultValue;
   return !/^(0|false|no|off)$/i.test(value.trim());
 }
 
@@ -81,7 +87,7 @@ function parseBoolEnv(value: string | undefined, defaultValue: boolean): boolean
  */
 export function resolveEgress(
   explicit: { proxyUrl?: string | null; sslVerify?: boolean } = {},
-  envSource: Record<string, string | undefined> = process.env
+  envSource: Record<string, string | undefined> = process.env,
 ): EgressConfig {
   const proxy =
     explicit.proxyUrl !== undefined

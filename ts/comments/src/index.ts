@@ -8,33 +8,32 @@
  *  - Comment reaction management and analytics
  */
 
-// Core classes
-export { FigmaCommentsService } from './core/service.js';
-export { FigmaCommentsSDK } from './interfaces/sdk.js';
-
+// Re-export utility classes from @figma-api/fetch for convenience
+// Users can also import these directly from '@figma-api/fetch' if needed
+export { RateLimiter, RequestCache } from "@figma-api/fetch";
 // Error classes
 export {
-  FigmaCommentsError,
   ApiError,
-  RateLimitError,
   AuthenticationError,
   AuthorizationError,
-  ValidationError,
-  NotFoundError,
-  NetworkError,
-  ConfigurationError,
   CommentError,
   CommentPermissionError,
   CommentValidationError,
+  ConfigurationError,
+  createErrorFromResponse,
+  FigmaCommentsError,
+  FileAccessError,
   FileError,
   FileNotFoundError,
-  FileAccessError,
-  createErrorFromResponse
-} from './core/exceptions.js';
-
-// Re-export utility classes from @figma-api/fetch for convenience
-// Users can also import these directly from '@figma-api/fetch' if needed
-export { RateLimiter, RequestCache } from '@figma-api/fetch';
-
+  NetworkError,
+  NotFoundError,
+  RateLimitError,
+  ValidationError,
+} from "./core/exceptions.js";
+// Core classes
+export { FigmaCommentsService } from "./core/service.js";
 // Default export - the main SDK
-export { FigmaCommentsSDK as default } from './interfaces/sdk.js';
+export {
+  FigmaCommentsSDK,
+  FigmaCommentsSDK as default,
+} from "./interfaces/sdk.js";

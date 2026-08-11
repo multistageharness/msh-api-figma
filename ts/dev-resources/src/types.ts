@@ -143,9 +143,7 @@ export interface MultiFileResourceInput {
   url: string;
 }
 
-export interface ProgressCallback {
-  (result: BatchCreateResult): void;
-}
+export type ProgressCallback = (result: BatchCreateResult) => void;
 
 export declare class FigmaApiError extends Error {
   code: string;
@@ -177,22 +175,29 @@ export declare class FigmaDevResourcesClient {
 
   request(path: string, options?: RequestInit): Promise<any>;
 
-  getDevResources(fileKey: string, options?: GetDevResourcesOptions): Promise<GetDevResourcesResponse>;
+  getDevResources(
+    fileKey: string,
+    options?: GetDevResourcesOptions,
+  ): Promise<GetDevResourcesResponse>;
 
-  createDevResources(devResources: CreateDevResourceInput[]): Promise<CreateDevResourcesResponse>;
+  createDevResources(
+    devResources: CreateDevResourceInput[],
+  ): Promise<CreateDevResourcesResponse>;
 
-  updateDevResources(devResources: UpdateDevResourceInput[]): Promise<UpdateDevResourcesResponse>;
+  updateDevResources(
+    devResources: UpdateDevResourceInput[],
+  ): Promise<UpdateDevResourcesResponse>;
 
   deleteDevResource(fileKey: string, devResourceId: string): Promise<any>;
 
   batchCreateDevResources(
     devResources: CreateDevResourceInput[],
     onProgress?: ProgressCallback | null,
-    batchSize?: number
+    batchSize?: number,
   ): Promise<BatchCreateResult>;
 
   getMultipleFileDevResources(
     fileKeys: string[],
-    options?: GetDevResourcesOptions
+    options?: GetDevResourcesOptions,
   ): Promise<MultiFileResult>;
 }

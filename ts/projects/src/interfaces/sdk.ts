@@ -3,7 +3,7 @@
  * Provides ergonomic API over core service layer
  */
 
-import FigmaProjectsService from '../core/service.js';
+import FigmaProjectsService from "../core/service.js";
 
 /**
  * High-level SDK for Figma Projects API
@@ -26,16 +26,24 @@ export class FigmaProjectsSDK {
    * @param {object} [config.logger=console] - Logger instance
    * @param {object} [config.serviceConfig] - Service layer configuration
    */
-  constructor({ fetcher, logger = console, serviceConfig = {} }: { fetcher?: any; logger?: any; serviceConfig?: Record<string, any> } = {}) {
+  constructor({
+    fetcher,
+    logger = console,
+    serviceConfig = {},
+  }: {
+    fetcher?: any;
+    logger?: any;
+    serviceConfig?: Record<string, any>;
+  } = {}) {
     // Initialize service
     this.service = new FigmaProjectsService({
       fetcher,
       logger,
-      config: serviceConfig
+      config: serviceConfig,
     });
 
     this.logger = logger;
-    this.logger.debug('FigmaProjectsSDK initialized');
+    this.logger.debug("FigmaProjectsSDK initialized");
   }
 
   /**
@@ -45,7 +53,10 @@ export class FigmaProjectsSDK {
    * @param {boolean} [options.includeStats=false] - Include project statistics
    * @returns {Promise<object>} Projects data
    */
-  async getTeamProjects(teamId: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async getTeamProjects(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     return this.service.getTeamProjects(teamId, options);
   }
 
@@ -57,7 +68,10 @@ export class FigmaProjectsSDK {
    * @param {boolean} [options.sortByModified=true] - Sort by last modified date
    * @returns {Promise<object>} Project files data
    */
-  async getProjectFiles(projectId: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async getProjectFiles(
+    projectId: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     return this.service.getProjectFiles(projectId, options);
   }
 
@@ -69,7 +83,10 @@ export class FigmaProjectsSDK {
    * @param {boolean} [options.includeEmptyProjects=true] - Include projects with no files
    * @returns {Promise<object>} Complete project tree
    */
-  async getProjectTree(teamId: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async getProjectTree(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     return this.service.getProjectsWithFiles(teamId, options);
   }
 
@@ -82,7 +99,11 @@ export class FigmaProjectsSDK {
    * @param {boolean} [options.exactMatch=false] - Exact match only
    * @returns {Promise<object>} Search results
    */
-  async searchProjects(teamId: string, query: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async searchProjects(
+    teamId: string,
+    query: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     return this.service.searchProjects(teamId, query, options);
   }
 
@@ -104,7 +125,11 @@ export class FigmaProjectsSDK {
    * @param {boolean} [options.exactMatch=true] - Exact match only
    * @returns {Promise<object>} File data
    */
-  async findFile(projectId: string, fileName: string, options: Record<string, any> = {}): Promise<Record<string, any> | null> {
+  async findFile(
+    projectId: string,
+    fileName: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any> | null> {
     return this.service.findFileByName(projectId, fileName, options);
   }
 
@@ -115,7 +140,11 @@ export class FigmaProjectsSDK {
    * @param {number} [daysBack=7] - Number of days to look back
    * @returns {Promise<object>} Recent files data
    */
-  async getRecentFiles(teamId: string, limit: number = 10, daysBack: number = 7): Promise<Record<string, any>> {
+  async getRecentFiles(
+    teamId: string,
+    limit: number = 10,
+    daysBack: number = 7,
+  ): Promise<Record<string, any>> {
     return this.service.getRecentFiles(teamId, limit, daysBack);
   }
 
@@ -126,7 +155,10 @@ export class FigmaProjectsSDK {
    * @param {number} [options.maxConcurrency=5] - Max concurrent requests
    * @returns {Promise<object>} Batch results
    */
-  async getMultipleProjects(projectIds: string[], options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async getMultipleProjects(
+    projectIds: string[],
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     return this.service.batchGetProjects(projectIds, options);
   }
 
@@ -136,7 +168,10 @@ export class FigmaProjectsSDK {
    * @param {string} [format='json'] - Export format (json, csv)
    * @returns {Promise<string>} Exported data
    */
-  async exportProjects(teamId: string, format: string = 'json'): Promise<string> {
+  async exportProjects(
+    teamId: string,
+    format: string = "json",
+  ): Promise<string> {
     return this.service.exportProjectStructure(teamId, format);
   }
 
@@ -146,29 +181,28 @@ export class FigmaProjectsSDK {
    */
   async healthCheck(): Promise<Record<string, any>> {
     try {
-      this.logger.debug('Performing health check');
+      this.logger.debug("Performing health check");
 
       // Simple health check - SDK is operational if service is initialized
       const status = {
-        status: 'healthy',
+        status: "healthy",
         timestamp: new Date().toISOString(),
         sdkInitialized: true,
         serviceInitialized: !!this.service,
-        version: '1.0.0'
+        version: "1.0.0",
       };
 
-      this.logger.debug('Health check completed', status);
+      this.logger.debug("Health check completed", status);
       return status;
-
     } catch (error: any) {
-      this.logger.error('Health check failed', { error: error.message });
+      this.logger.error("Health check failed", { error: error.message });
 
       return {
-        status: 'unhealthy',
+        status: "unhealthy",
         timestamp: new Date().toISOString(),
         error: error.message,
-        code: error.code || 'UNKNOWN_ERROR',
-        version: '1.0.0'
+        code: error.code || "UNKNOWN_ERROR",
+        version: "1.0.0",
       };
     }
   }
@@ -179,9 +213,9 @@ export class FigmaProjectsSDK {
    */
   getMetrics(): Record<string, any> {
     return {
-      sdkVersion: '1.0.0',
+      sdkVersion: "1.0.0",
       serviceInitialized: !!this.service,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -189,7 +223,7 @@ export class FigmaProjectsSDK {
    * Reset SDK state (placeholder for future cache/metrics implementation)
    */
   reset(): void {
-    this.logger.debug('SDK state reset');
+    this.logger.debug("SDK state reset");
   }
 
   // Convenience methods for common workflows
@@ -203,13 +237,16 @@ export class FigmaProjectsSDK {
    * @param {number} [options.recentFilesLimit=20] - Limit for recent files
    * @returns {Promise<object>} Team overview
    */
-  async getTeamOverview(teamId: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async getTeamOverview(
+    teamId: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     const includeStats = options.includeStats !== false;
     const includeRecentFiles = options.includeRecentFiles !== false;
     const recentFilesLimit = options.recentFilesLimit || 20;
 
     try {
-      this.logger.debug('Generating team overview', { teamId, options });
+      this.logger.debug("Generating team overview", { teamId, options });
 
       // Get projects with statistics
       const projects = await this.getTeamProjects(teamId, { includeStats });
@@ -220,19 +257,24 @@ export class FigmaProjectsSDK {
         try {
           recentFiles = await this.getRecentFiles(teamId, recentFilesLimit);
         } catch (error: any) {
-          this.logger.warn('Failed to fetch recent files for overview', {
+          this.logger.warn("Failed to fetch recent files for overview", {
             teamId,
-            error: error.message
+            error: error.message,
           });
         }
       }
 
       // Calculate summary statistics
       const totalProjects = projects.totalCount;
-      const projectsWithStats = projects.projects.filter((p: any) => p.statistics);
-      const totalFiles = projectsWithStats.reduce((sum: number, p: any) => sum + (p.statistics?.fileCount || 0), 0);
-      const activeProjects = projectsWithStats.filter((p: any) =>
-        p.statistics?.activitySummary?.lastMonth > 0
+      const projectsWithStats = projects.projects.filter(
+        (p: any) => p.statistics,
+      );
+      const totalFiles = projectsWithStats.reduce(
+        (sum: number, p: any) => sum + (p.statistics?.fileCount || 0),
+        0,
+      );
+      const activeProjects = projectsWithStats.filter(
+        (p: any) => p.statistics?.activitySummary?.lastMonth > 0,
       ).length;
 
       return {
@@ -241,7 +283,8 @@ export class FigmaProjectsSDK {
           totalProjects,
           totalFiles,
           activeProjects,
-          activeProjectsPercentage: totalProjects > 0 ? (activeProjects / totalProjects) * 100 : 0
+          activeProjectsPercentage:
+            totalProjects > 0 ? (activeProjects / totalProjects) * 100 : 0,
         },
         projects: projects.projects,
         recentFiles: recentFiles?.files || [],
@@ -249,14 +292,13 @@ export class FigmaProjectsSDK {
           generatedAt: new Date().toISOString(),
           includeStats,
           includeRecentFiles,
-          recentFilesLimit
-        }
+          recentFilesLimit,
+        },
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to generate team overview', {
+      this.logger.error("Failed to generate team overview", {
         teamId,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -269,11 +311,15 @@ export class FigmaProjectsSDK {
    * @param {object} [options={}] - Search options
    * @returns {Promise<object|null>} Project data or null if not found
    */
-  async findProject(teamId: string, projectName: string, options: Record<string, any> = {}): Promise<Record<string, any> | null> {
+  async findProject(
+    teamId: string,
+    projectName: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any> | null> {
     try {
       const searchResults = await this.searchProjects(teamId, projectName, {
         exactMatch: true,
-        caseSensitive: options.caseSensitive || false
+        caseSensitive: options.caseSensitive || false,
       });
 
       if (searchResults.totalMatches === 0) {
@@ -290,12 +336,11 @@ export class FigmaProjectsSDK {
       }
 
       return project;
-
     } catch (error: any) {
-      this.logger.error('Failed to find project', {
+      this.logger.error("Failed to find project", {
         teamId,
         projectName,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -308,18 +353,30 @@ export class FigmaProjectsSDK {
    * @param {object} [options={}] - Search options
    * @returns {Promise<object[]>} Array of matching files with project context
    */
-  async findFileAcrossProjects(teamId: string, fileName: string, options: Record<string, any> = {}): Promise<Record<string, any>> {
+  async findFileAcrossProjects(
+    teamId: string,
+    fileName: string,
+    options: Record<string, any> = {},
+  ): Promise<Record<string, any>> {
     try {
-      this.logger.debug('Searching for file across projects', { teamId, fileName, options });
+      this.logger.debug("Searching for file across projects", {
+        teamId,
+        fileName,
+        options,
+      });
 
       const projectsWithFiles = await this.getProjectTree(teamId);
       const matchingFiles: any[] = [];
 
-      const searchTerm = options.caseSensitive ? fileName : fileName.toLowerCase();
+      const searchTerm = options.caseSensitive
+        ? fileName
+        : fileName.toLowerCase();
 
       for (const project of projectsWithFiles.projects) {
         for (const file of project.files) {
-          const fileNameToSearch = options.caseSensitive ? file.name : file.name.toLowerCase();
+          const fileNameToSearch = options.caseSensitive
+            ? file.name
+            : file.name.toLowerCase();
 
           const matches = options.exactMatch
             ? fileNameToSearch === searchTerm
@@ -329,7 +386,7 @@ export class FigmaProjectsSDK {
             matchingFiles.push({
               ...file,
               projectId: project.id,
-              projectName: project.name
+              projectName: project.name,
             });
           }
         }
@@ -340,20 +397,19 @@ export class FigmaProjectsSDK {
           fileName,
           teamId,
           caseSensitive: options.caseSensitive || false,
-          exactMatch: options.exactMatch || false
+          exactMatch: options.exactMatch || false,
         },
         results: matchingFiles,
         totalMatches: matchingFiles.length,
         projectsScanned: projectsWithFiles.totalProjects,
         totalFilesScanned: projectsWithFiles.totalFiles,
-        searchedAt: new Date().toISOString()
+        searchedAt: new Date().toISOString(),
       };
-
     } catch (error: any) {
-      this.logger.error('Failed to search file across projects', {
+      this.logger.error("Failed to search file across projects", {
         teamId,
         fileName,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }

@@ -3,12 +3,10 @@
  * Extends shared base configuration
  */
 
-import baseConfig from '../jest.base.config.mjs';
+import baseConfig from "../jest.base.config.mjs";
 
 export default {
   ...baseConfig,
-  displayName: 'figma-fetch',
-  testMatch: [
-    '<rootDir>/tests/**/*.test.mjs'
-  ]
+  displayName: "figma-fetch",
+  testMatch: ["<rootDir>/tests/**/*.test.mjs"],
 };
