@@ -1,0 +1,71 @@
+## ============================================================================
+## PLACEHOLDER LEGEND — delete this whole block when instantiating.
+##
+## This is a FRAGMENT, not a Makefile (UI-10). Splice it into a Makefile already
+## instantiated from Makefile.msh-ui.tmpl. Applies ONLY when the package has a
+## `dev/server/` mounted by vite.config.ts. Reference implementation:
+## msh-ui-FigmaFindConsole/v100/Makefile.
+##
+##   {{SIBLING}}        UPPER_SNAKE knob prefix for one sibling repo (e.g. FIGMA_FIND)
+##   {{sibling-label}}  human label used in echoes (e.g. figma-find)
+##   {{SIBLING_PATH}}   relative default path to the checkout (e.g. ../../msh-api-figma/v100/packages/ts)
+##   {{LINK_PATH}}      the node_modules path that proves the link exists
+##                      (e.g. node_modules/@internal/figma-find-api)
+##   {{BUILD_STEPS}}    what to run inside the checkout — ALWAYS that repo's own package
+##                      manager (`npm` for current siblings), NEVER $(PKG_MANAGER) (UI-11)
+##   {{DEGRADE_HINT}}   one line telling the user what still works without this sibling
+##   {{ROUTE}}          the vite-mounted API base path (e.g. /api/figma-find)
+##
+## Repeat the per-sibling target once per sibling repo, then list them all as
+## prerequisites of `backend`.
+##
+## SPLICE CHECKLIST — all four edits, or the block is inert:
+##   1. add the knobs below to the variable section (after the four UI-03 knobs)
+##   2. add `backend health` + every per-sibling target name to .PHONY
+##   3. change `dev: stop`   -> `dev: stop backend`
+##             `watch:`      -> `watch: backend`
+##             `run-server:` -> `run-server: backend`
+##   4. extend the `##` header block to name each sibling and its degraded behaviour
+##
+## UI-09: macOS ships GNU Make 3.81, where `.ONESHELL:` is parsed and IGNORED —
+## every line runs in its own shell. Hence the `\` continuations and the
+## `( cd … && … )` subshells below. A bare `cd` on its own line does NOT carry to
+## the next line. Do not "simplify" these recipes into one-shell style.
+## ============================================================================
+
+## --- variable section: append after the four UI-03 knobs ---
+{{SIBLING}}_DIR  ?= {{SIBLING_PATH}}
+{{SIBLING}}_LINK := {{LINK_PATH}}
+
+## --- per-sibling prepare target (repeat per sibling) ---
+{{sibling-label}}: ## Build + link {{sibling-label}} into the dev-server backend
+	@if [ ! -d "$({{SIBLING}}_DIR)" ]; then \
+	  echo "{{sibling-label}}: not found at $({{SIBLING}}_DIR)"; \
+	  echo "{{sibling-label}}: {{DEGRADE_HINT}}"; \
+	  exit 0; \
+	fi; \
+	echo "{{sibling-label}}: building $({{SIBLING}}_DIR)..."; \
+	( cd "$({{SIBLING}}_DIR)" && {{BUILD_STEPS}} ) || exit 1; \
+	if [ ! -e "$({{SIBLING}}_LINK)" ]; then \
+	  echo "{{sibling-label}}: linking into node_modules ($(PKG_MANAGER))..."; \
+	  $(PKG_MANAGER) install || exit 1; \
+	fi; \
+	echo "{{sibling-label}}: ready from $({{SIBLING}}_DIR)"
+
+## --- aggregate + health ---
+backend: {{sibling-label}} ## Prepare the whole dev-server backend
+	@echo "backend: ready — {{ROUTE}}"
+
+health: ## Query the running dev server's backend health endpoint
+	@curl -fsS http://localhost:$(PORT){{ROUTE}}/health || \
+	  { echo "backend unreachable on port $(PORT) — is the dev server running?"; exit 1; }
+
+## --- run-server replacement: backend prerequisite + environment preflight ---
+## Keep the preflight only if the backend needs an env var; otherwise use the
+## base template's run-server with `backend` added as a prerequisite.
+run-server: backend ## Run the fully integrated dev server in the foreground (UI + backend)
+	@if [ -z "$${FIGMA_TOKEN:-}$${FIGMA_API_TOKEN:-}$${FIGMA_ACCESS_TOKEN:-}" ]; then \
+	  echo "note: no Figma token in the environment — authenticated routes will 401."; \
+	  echo "      Run as: FIGMA_TOKEN=figd_... make run-server"; \
+	fi
+	$(PKG_MANAGER) run dev

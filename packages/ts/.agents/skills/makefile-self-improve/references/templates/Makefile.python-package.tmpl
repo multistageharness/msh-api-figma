@@ -1,0 +1,49 @@
+## ============================================================================
+## PLACEHOLDER LEGEND — delete this whole block when instantiating.
+##   {{PACKAGE_NAME}}       package name — [project].name in pyproject.toml, else dir name
+##   {{PACKAGE_DESC}}       one-line description — [project].description, else from README
+##   {{TYPECHECK_COMMAND}}  typecheck invocation — configured tool, else `$(PYTHON) -m py_compile <sources>`
+##   {{TEST_COMMAND}}       test invocation — configured runner, else `$(PYTHON) -m unittest discover ...`
+##   {{RUN_COMMAND}}        run invocation — __main__ module or console script; if none,
+##                          delete the optional run block and drop `run` from .PHONY and help
+## Deleting an optional block: also remove its target name from .PHONY and the help body.
+## ============================================================================
+##
+## {{PACKAGE_NAME}} — self-contained Makefile
+##
+## {{PACKAGE_DESC}}
+##
+
+PYTHON ?= python3
+
+.DEFAULT_GOAL := help
+
+.PHONY: help install typecheck test audit run clean
+
+help: ## Show this help
+	@echo "{{PACKAGE_NAME}} targets:"
+	@echo "  make test        run the test suite"
+	@echo "  make typecheck   byte-compile / typecheck every source file"
+	@echo "  make run         run the package"
+	@echo "  make install     install dependencies (no-op when stdlib-only)"
+	@echo "  make audit       typecheck + test"
+	@echo "  make clean       remove caches / build output"
+
+install: ## No-op when stdlib-only; present for umbrella uniformity
+	@echo "{{PACKAGE_NAME}}: stdlib only — nothing to install."
+
+typecheck: ## Byte-compile / typecheck every source file
+	{{TYPECHECK_COMMAND}}
+
+test: ## Run the test suite
+	{{TEST_COMMAND}}
+
+## --- optional block: run target (delete if no {{RUN_COMMAND}}) ---
+run: ## Run the package
+	{{RUN_COMMAND}}
+## --- end optional block ---
+
+audit: typecheck test ## typecheck + test
+
+clean: ## Remove caches / build output
+	rm -rf out **/__pycache__ .pytest_cache

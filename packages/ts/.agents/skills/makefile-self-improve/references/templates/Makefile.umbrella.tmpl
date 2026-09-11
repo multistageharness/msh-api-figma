@@ -1,0 +1,44 @@
+## ============================================================================
+## PLACEHOLDER LEGEND — delete this whole block when instantiating.
+##   {{PACKAGE_NAME}}   umbrella name — the directory name or workspace name
+##   {{PACKAGE_DESC}}   one-line description of what the children are
+##   {{CHILD_DIRS}}     space-separated child directories that contain Makefiles
+## Add per-child `test-<name>:` targets (extension vocabulary) when callers need to
+## drive one child alone — keep .PHONY and help in sync when you do.
+## ============================================================================
+##
+## {{PACKAGE_NAME}} — umbrella Makefile over child packages
+##
+## {{PACKAGE_DESC}}
+##
+## Delegates every core target to each child in CHILD_DIRS, in order.
+##
+
+CHILD_DIRS := {{CHILD_DIRS}}
+
+.DEFAULT_GOAL := help
+
+.PHONY: help install typecheck test audit clean
+
+help: ## Show this help
+	@echo "{{PACKAGE_NAME}} umbrella targets (over: $(CHILD_DIRS)):"
+	@echo "  make test        run every child's test suite"
+	@echo "  make typecheck   typecheck every child"
+	@echo "  make install     install every child"
+	@echo "  make audit       run every child's audit gate"
+	@echo "  make clean       clean every child"
+
+install: ## Install every child
+	@for d in $(CHILD_DIRS); do $(MAKE) -C $$d install || exit 1; done
+
+typecheck: ## Typecheck every child
+	@for d in $(CHILD_DIRS); do $(MAKE) -C $$d typecheck || exit 1; done
+
+test: ## Run every child's test suite
+	@for d in $(CHILD_DIRS); do $(MAKE) -C $$d test || exit 1; done
+
+audit: ## Run every child's audit gate
+	@for d in $(CHILD_DIRS); do $(MAKE) -C $$d audit || exit 1; done
+
+clean: ## Clean every child
+	@for d in $(CHILD_DIRS); do $(MAKE) -C $$d clean || exit 1; done
