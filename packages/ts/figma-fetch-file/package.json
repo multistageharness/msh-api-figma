@@ -1,0 +1,79 @@
+{
+  "name": "@internal/figma-api-fetch-file",
+  "version": "1.0.0",
+  "description": "Figma file-download domain: skeleton/nodes/whole-file endpoints plus the chunked large-file download engine, composed over @internal/figma-api-fetch",
+  "type": "module",
+  "main": "./lib/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./lib/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.mjs",
+      "require": "./lib/client/index.js"
+    },
+    "./chunk": {
+      "types": "./dist/chunk/index.d.ts",
+      "import": "./dist/chunk/index.mjs",
+      "require": "./lib/chunk/index.js"
+    },
+    "./sizing": {
+      "types": "./dist/sizing/index.d.ts",
+      "import": "./dist/sizing/index.mjs",
+      "require": "./lib/sizing/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.mjs",
+      "require": "./lib/testing/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "lib",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist lib *.tsbuildinfo",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run rename:mjs && npm run fix:imports && npm run mark:cjs",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:types": "tsc -p tsconfig.types.json",
+    "rename:mjs": "find dist -name '*.js' -type f ! -name '*.d.ts' -exec sh -c 'mv \"$1\" \"${1%.js}.mjs\"' _ {} \\;",
+    "fix:imports": "find dist -name '*.mjs' -type f -exec sed -i '' \"s/from '\\(.*\\)\\.js'/from '\\1.mjs'/g\" {} \\; && find dist -name '*.mjs' -type f -exec sed -i '' 's/from \"\\(.*\\)\\.js\"/from \"\\1.mjs\"/g' {} \\;",
+    "test": "node --experimental-vm-modules ../node_modules/.bin/jest",
+    "test:unit": "node --experimental-vm-modules ../node_modules/.bin/jest tests/unit",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "mark:cjs": "printf '{\"type\":\"commonjs\"}' > lib/package.json"
+  },
+  "keywords": [
+    "figma",
+    "api",
+    "files",
+    "download",
+    "chunking",
+    "typescript"
+  ],
+  "author": "thinkeloquent",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@internal/figma-api-fetch": "file:../figma-fetch"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

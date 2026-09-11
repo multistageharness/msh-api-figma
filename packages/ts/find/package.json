@@ -1,0 +1,66 @@
+{
+  "name": "@internal/figma-find-api",
+  "version": "1.0.0",
+  "description": "Node.js client and CLI for Figma find-and-search: find, xpath, path, pages, comments, annotations, dev-resources and federated search over a Figma file",
+  "type": "module",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "bin": {
+    "figma-find": "lib/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
+    },
+    "./cli": {
+      "import": "./lib/cli.js"
+    }
+  },
+  "files": [
+    "lib",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "clean": "rm -rf lib *.tsbuildinfo",
+    "build": "npm run clean && tsc -p tsconfig.json && chmod +x lib/cli.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "figma",
+    "find",
+    "search",
+    "xpath",
+    "api",
+    "client",
+    "sdk",
+    "cli"
+  ],
+  "author": "thinkeloquent",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@internal/figma-find": "file:../../../../../msh-sdk-figma-find/v100/packages/ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thinkeloquent/figma-api-module.git",
+    "directory": "v100/packages/ts/find"
+  }
+}
